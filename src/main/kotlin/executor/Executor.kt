@@ -1,6 +1,6 @@
-package dev.ktscheduler.executor
+package dev.starry.ktscheduler.executor
 
-import dev.ktscheduler.job.Job
+import dev.starry.ktscheduler.job.Job
 
 /**
  * An interface for executing jobs.

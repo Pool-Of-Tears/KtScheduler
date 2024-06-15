@@ -1,4 +1,4 @@
-package dev.ktscheduler.trigger
+package dev.starry.ktscheduler.trigger
 
 import java.time.ZoneId
 import java.time.ZonedDateTime

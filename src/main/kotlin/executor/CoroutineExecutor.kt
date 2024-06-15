@@ -1,7 +1,7 @@
-package dev.ktscheduler.executor
+package dev.starry.ktscheduler.executor
 
-import dev.ktscheduler.exception.JobExecutionException
-import dev.ktscheduler.job.Job
+import dev.starry.ktscheduler.exception.JobExecutionException
+import dev.starry.ktscheduler.job.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

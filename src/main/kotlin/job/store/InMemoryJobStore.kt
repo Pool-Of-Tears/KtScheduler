@@ -1,6 +1,6 @@
-package dev.ktscheduler.job.store
+package dev.starry.ktscheduler.job.store
 
-import dev.ktscheduler.job.Job
+import dev.starry.ktscheduler.job.Job
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap

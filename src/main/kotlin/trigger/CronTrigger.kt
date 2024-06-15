@@ -1,25 +1,28 @@
-package dev.ktscheduler.trigger
+package dev.starry.ktscheduler.trigger
 
-import dev.ktscheduler.utils.CronParser
+import java.time.DayOfWeek
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * A trigger that fires based on a cron expression.
+ * A trigger that determines the next run time based on the specified days of the week and time.
  *
- * @param cronExpression The cron expression defining the trigger schedule.
+ * @param daysOfWeek The set of days of the week on which the trigger should run.
+ * @param time The time of day at which the trigger should run.
  */
-class CronTrigger(private val cronExpression: String) : Trigger {
-    private val cronParser = CronParser(cronExpression)
-
-    /**
-     * Gets the next run time based on the current time and the cron expression.
-     *
-     * @param currentTime The current time as a [ZonedDateTime].
-     * @param timeZone The time zone in which the trigger is operating.
-     * @return The next run time as a [ZonedDateTime].
-     */
-    override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime {
-        return cronParser.getNextRunTime(currentTime, timeZone)
+class CronTrigger(
+    private val daysOfWeek: Set<DayOfWeek>,
+    private val time: LocalTime
+) : Trigger {
+    override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime? {
+        var nextRunTime = currentTime.withZoneSameInstant(timeZone).with(time).withNano(0)
+        if (nextRunTime.isBefore(currentTime) || nextRunTime.isEqual(currentTime)) {
+            nextRunTime = nextRunTime.plusDays(1)
+        }
+        while (nextRunTime.dayOfWeek !in daysOfWeek) {
+            nextRunTime = nextRunTime.plusDays(1)
+        }
+        return nextRunTime
     }
 }

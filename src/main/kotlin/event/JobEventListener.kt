@@ -23,7 +23,7 @@
  */
 
 
-package dev.ktscheduler.event
+package dev.starry.ktscheduler.event
 
 /**
  * JobEventListener is an interface that is used to listen to the job events.

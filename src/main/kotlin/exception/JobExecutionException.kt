@@ -1,4 +1,4 @@
-package dev.ktscheduler.exception
+package dev.starry.ktscheduler.exception
 
 /**
  * An exception that is thrown when a job execution fails.

@@ -1,6 +1,6 @@
-package dev.ktscheduler.job
+package dev.starry.ktscheduler.job
 
-import dev.ktscheduler.trigger.Trigger
+import dev.starry.ktscheduler.trigger.Trigger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import java.time.ZonedDateTime

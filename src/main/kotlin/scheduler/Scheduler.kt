@@ -1,6 +1,6 @@
-package dev.ktscheduler.scheduler
+package dev.starry.ktscheduler.scheduler
 
-import dev.ktscheduler.job.Job
+import dev.starry.ktscheduler.job.Job
 
 /**
  * An interface for a job scheduler.
@@ -10,7 +10,7 @@ interface Scheduler {
     /**
      * Starts the scheduler.
      */
-    fun start(tickInterval: Long?)
+    fun start()
 
     /**
      * Shuts down the scheduler.

@@ -23,7 +23,7 @@
  */
 
 
-package dev.ktscheduler.event
+package dev.starry.ktscheduler.event
 
 import java.time.ZonedDateTime
 

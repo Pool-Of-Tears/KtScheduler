@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.0"
 }
 
-group = "dev.ktscheduler"
+group = "dev.starry.ktscheduler"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -12,7 +12,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
 
 tasks.test {

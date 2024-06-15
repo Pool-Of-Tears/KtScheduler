@@ -1,12 +1,12 @@
-package dev.ktscheduler.scheduler
+package dev.starry.ktscheduler.scheduler
 
-import dev.ktscheduler.event.JobEvent
-import dev.ktscheduler.event.JobEventListener
-import dev.ktscheduler.event.JobStatus
-import dev.ktscheduler.executor.CoroutineExecutor
-import dev.ktscheduler.job.Job
-import dev.ktscheduler.job.store.InMemoryJobStore
-import dev.ktscheduler.job.store.JobStore
+import dev.starry.ktscheduler.event.JobEvent
+import dev.starry.ktscheduler.event.JobEventListener
+import dev.starry.ktscheduler.event.JobStatus
+import dev.starry.ktscheduler.executor.CoroutineExecutor
+import dev.starry.ktscheduler.job.Job
+import dev.starry.ktscheduler.job.store.InMemoryJobStore
+import dev.starry.ktscheduler.job.store.JobStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.util.logging.Logger
 
 /**
  * A job scheduler that uses Kotlin coroutines.
@@ -36,6 +37,10 @@ class KtScheduler(
     private val maxGraceTime: Duration = Duration.ofMinutes(1)
 ) : Scheduler {
 
+    companion object {
+        private const val TAG = "KtScheduler"
+        private val logger = Logger.getLogger(TAG)
+    }
     // The coroutine scope with a SupervisorJob to prevent cancellation of all jobs
     // if one of them fails.
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -52,6 +57,9 @@ class KtScheduler(
     // The set of paused jobs.
     private val pausedJobs = mutableSetOf<String>()
 
+    // The tick interval in milliseconds.
+    private val tickInterval = 100L
+
     /**
      * Starts the scheduler.
      *
@@ -60,22 +68,26 @@ class KtScheduler(
      *
      * @param tickInterval The tick interval in milliseconds. Default is 1000 milliseconds.
      */
-    override fun start(tickInterval: Long?) {
+    override fun start() {
+        logger.info("Starting scheduler")
         coroutineScope.launch {
             while (isActive) {
                 if (!isPaused) {
                     processDueJobs()
                 }
-                delay(tickInterval ?: 1000L)
+                delay(tickInterval)
             }
         }
+        logger.info("Scheduler started")
     }
 
     /**
      * Shuts down the scheduler.
      */
     override fun shutdown() {
+        logger.info("Shutting down scheduler")
         coroutineScope.cancel()
+        logger.info("Scheduler shut down")
     }
 
     /**
@@ -84,6 +96,7 @@ class KtScheduler(
      * @param job The job to add.
      */
     override fun addJob(job: Job) {
+        logger.info("Adding job ${job.jobId}")
         jobStore.addJob(job)
     }
 
@@ -93,6 +106,7 @@ class KtScheduler(
      * @param jobId The ID of the job to remove.
      */
     override fun removeJob(jobId: String) {
+        logger.info("Removing job $jobId")
         jobStore.removeJob(jobId)
     }
 
@@ -102,6 +116,7 @@ class KtScheduler(
      * @return A list of all jobs.
      */
     override fun getJobs(): List<Job> {
+        logger.info("Retrieving all jobs")
         return jobStore.getAllJobs()
     }
 
@@ -111,6 +126,7 @@ class KtScheduler(
      * When paused, the scheduler will not process any due jobs.
      */
     override fun pause() {
+        logger.info("Pausing scheduler")
         isPaused = true
     }
 
@@ -120,6 +136,7 @@ class KtScheduler(
      * When resumed, the scheduler will continue processing due jobs.
      */
     override fun resume() {
+        logger.info("Resuming scheduler")
         isPaused = false
     }
 
@@ -140,6 +157,7 @@ class KtScheduler(
      * @param jobId The ID of the job to pause.
      */
     override fun pauseJob(jobId: String) {
+        logger.info("Pausing job $jobId")
         pausedJobs.add(jobId)
     }
 
@@ -151,6 +169,7 @@ class KtScheduler(
      * @param jobId The ID of the job to resume.
      */
     override fun resumeJob(jobId: String) {
+        logger.info("Resuming job $jobId")
         pausedJobs.remove(jobId)
     }
 
@@ -171,10 +190,12 @@ class KtScheduler(
             .filterNot { pausedJobs.contains(it.jobId) }
 
         dueJobs.forEach { job ->
+            logger.info("Processing due jobs")
             try {
                 executor.execute(job)
                 handleJobCompletion(job, now)
             } catch (e: Exception) {
+                logger.severe("Error executing job ${job.jobId}: ${e.message}")
                 notifyJobError(job.jobId, e)
             }
         }
@@ -184,8 +205,10 @@ class KtScheduler(
     private fun handleJobCompletion(job: Job, now: ZonedDateTime) {
         val nextRunTime = job.trigger.getNextRunTime(now, timeZone)
         if (nextRunTime != null) {
+            logger.info("Updating next run time for job ${job.jobId} to $nextRunTime")
             jobStore.updateJobNextRunTime(job.jobId, nextRunTime)
         } else {
+            logger.info("Removing job ${job.jobId} as it has no next run time")
             jobStore.removeJob(job.jobId)
         }
         notifyJobComplete(job.jobId)
