@@ -14,5 +14,5 @@ interface Executor {
      * @param onSuccess The function to call when the job completes successfully.
      * @param onError The function to call when the job fails.
      */
-    suspend fun execute(job: Job, onSuccess:() -> Unit, onError: (Exception) -> Unit)
+    suspend fun execute(job: Job, onSuccess: () -> Unit, onError: (Exception) -> Unit)
 }

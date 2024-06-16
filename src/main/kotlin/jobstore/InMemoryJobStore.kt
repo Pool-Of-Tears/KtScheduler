@@ -36,15 +36,17 @@ class InMemoryJobStore : JobStore {
      * Gets the due jobs based on the current time.
      *
      * @param currentTime The current time as a [ZonedDateTime].
-     * @param maxGraceTime The maximum grace time for a job to be considered due.
+     * @param maxGraceTime The maximum grace time for a job to be considered due, null if no grace time.
      */
-    override fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration): List<Job> {
+    override fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration?): List<Job> {
         return jobs.values.filter { job ->
             val jobNextRunTime = job.nextRunTime
-            val jobDeadline = jobNextRunTime.plus(maxGraceTime)
-            jobNextRunTime <= currentTime && currentTime <= jobDeadline
+            maxGraceTime?.let { graceTime ->
+                jobNextRunTime <= currentTime && currentTime <= jobNextRunTime.plus(graceTime)
+            } ?: (jobNextRunTime <= currentTime)
         }
     }
+
 
     /**
      * Updates the next run time of a job.

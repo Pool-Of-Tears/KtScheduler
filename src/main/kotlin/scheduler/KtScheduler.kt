@@ -29,12 +29,12 @@ import java.util.logging.Logger
  *
  * @param jobStore The job store to use. Default is [InMemoryJobStore].
  * @param timeZone The time zone in which the scheduler is operating. Default is the system default time zone.
- * @param maxGraceTime The maximum grace time for a job to be considered due. Default is 1 minute.
+ * @param maxGraceTime The maximum grace time for a job to be considered due. Default is `null` (no grace time).
  */
 class KtScheduler(
     private val jobStore: JobStore = InMemoryJobStore(),
     private val timeZone: ZoneId = ZoneId.systemDefault(),
-    private val maxGraceTime: Duration = Duration.ofMinutes(1)
+    private val maxGraceTime: Duration? = null
 ) : Scheduler {
 
     companion object {

@@ -17,6 +17,7 @@ class OneTimeTrigger(private val runAt: ZonedDateTime) : Trigger {
      * @return The next run time as a [ZonedDateTime] if it is after the current time, or `null` if the trigger has already fired.
      */
     override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime? {
-        return if (runAt.isAfter(currentTime)) runAt else null
+        val adjustedRunAt = runAt.withZoneSameInstant(currentTime.zone)
+        return if (adjustedRunAt.isAfter(currentTime)) adjustedRunAt else null
     }
 }

@@ -27,9 +27,9 @@ interface JobStore {
      * Gets the due jobs based on the current time.
      *
      * @param currentTime The current time as a [ZonedDateTime].
-     * @param maxGraceTime The maximum grace time for a job to be considered due.
+     * @param maxGraceTime The maximum grace time for a job to be considered due, null if no grace time.
      */
-    fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration): List<Job>
+    fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration?): List<Job>
 
     /**
      * Updates the next run time of a job.
