@@ -59,6 +59,16 @@ class InMemoryJobStore : JobStore {
     }
 
     /**
+     * Gets a job by its ID.
+     *
+     * @param jobId The ID of the job to get.
+     * @return The job with the given ID, or null if no job exists with that ID.
+     */
+    override fun getJobById(jobId: String): Job? {
+        return jobs[jobId]
+    }
+
+    /**
      * Gets all jobs in the store.
      *
      * @return A list of all jobs.

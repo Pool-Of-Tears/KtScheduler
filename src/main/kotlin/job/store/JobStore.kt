@@ -40,6 +40,14 @@ interface JobStore {
     fun updateJobNextRunTime(jobId: String, nextRunTime: ZonedDateTime)
 
     /**
+     * Gets a job by its ID.
+     *
+     * @param jobId The ID of the job to get.
+     * @return The job with the given ID, or null if no such job exists.
+     */
+    fun getJobById(jobId: String): Job?
+
+    /**
      * Gets all jobs in the store.
      *
      * @return A list of all jobs.

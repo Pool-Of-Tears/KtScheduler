@@ -1,5 +1,6 @@
 package dev.starry.ktscheduler.scheduler
 
+import dev.starry.ktscheduler.event.JobEventListener
 import dev.starry.ktscheduler.job.Job
 
 /**
@@ -17,6 +18,15 @@ interface Scheduler {
      */
     fun shutdown()
 
+
+    /**
+     * Idles the scheduler.
+     *
+     * use this method to block the current thread and idle until
+     * the scheduler is shut down.
+     */
+    fun idle()
+
     /**
      * Adds a job to the scheduler.
      *
@@ -30,6 +40,14 @@ interface Scheduler {
      * @param jobId The ID of the job to remove.
      */
     fun removeJob(jobId: String)
+
+    /**
+     * Gets a job by its ID.
+     *
+     * @param jobId The ID of the job to get.
+     * @return The job with the given ID, or `null` if no such job exists.
+     */
+    fun getJob(jobId: String): Job?
 
     /**
      * Gets all jobs in the scheduler.
@@ -68,4 +86,19 @@ interface Scheduler {
      * @param jobId The ID of the job to resume.
      */
     fun resumeJob(jobId: String)
+
+    /**
+     * Checks if a specific job is paused.
+     *
+     * @param jobId The ID of the job to check.
+     * @return `true` if the job is paused, `false` otherwise.
+     */
+    fun isJobPaused(jobId: String): Boolean
+
+    /**
+     * Adds a listener for job events.
+     *
+     * @param listener The listener to add.
+     */
+    fun addEventListener(listener: JobEventListener)
 }

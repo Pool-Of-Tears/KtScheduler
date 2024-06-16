@@ -41,6 +41,7 @@ class KtScheduler(
         private const val TAG = "KtScheduler"
         private val logger = Logger.getLogger(TAG)
     }
+
     // The coroutine scope with a SupervisorJob to prevent cancellation of all jobs
     // if one of them fails.
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -64,9 +65,7 @@ class KtScheduler(
      * Starts the scheduler.
      *
      * The scheduler will run in a coroutine and continuously process due jobs
-     * at the specified tick interval unless it is paused.
-     *
-     * @param tickInterval The tick interval in milliseconds. Default is 1000 milliseconds.
+     * at the specified tick interval unless it is paused or shut down.
      */
     override fun start() {
         logger.info("Starting scheduler")
@@ -91,6 +90,19 @@ class KtScheduler(
     }
 
     /**
+     * Idles the scheduler.
+     *
+     * use this method to block the current thread and idle until
+     * the scheduler is shut down.
+     */
+    override fun idle() {
+        logger.info("idling scheduler")
+        while (coroutineScope.isActive) {
+            Thread.sleep(1000)
+        }
+    }
+
+    /**
      * Adds a job to the scheduler.
      *
      * @param job The job to add.
@@ -108,6 +120,17 @@ class KtScheduler(
     override fun removeJob(jobId: String) {
         logger.info("Removing job $jobId")
         jobStore.removeJob(jobId)
+    }
+
+    /**
+     * Retrieves a job by its ID.
+     *
+     * @param jobId The ID of the job to retrieve.
+     * @return The job with the given ID, or `null` if no such job exists.
+     */
+    override fun getJob(jobId: String): Job? {
+        logger.info("Retrieving job $jobId")
+        return jobStore.getJobById(jobId)
     }
 
     /**
@@ -174,11 +197,21 @@ class KtScheduler(
     }
 
     /**
+     * Checks if a specific job is paused.
+     *
+     * @param jobId The ID of the job to check.
+     * @return `true` if the job is paused, `false` otherwise.
+     */
+    override fun isJobPaused(jobId: String): Boolean {
+        return pausedJobs.contains(jobId)
+    }
+
+    /**
      * Adds a job event listener to the scheduler.
      *
      * @param listener The listener to add.
      */
-    fun addEventListener(listener: JobEventListener) {
+    override fun addEventListener(listener: JobEventListener) {
         eventListeners.add(listener)
     }
 
@@ -190,19 +223,29 @@ class KtScheduler(
             .filterNot { pausedJobs.contains(it.jobId) }
 
         dueJobs.forEach { job ->
-            logger.info("Processing due jobs")
-            try {
-                executor.execute(job)
-                handleJobCompletion(job, now)
-            } catch (e: Exception) {
-                logger.severe("Error executing job ${job.jobId}: ${e.message}")
-                notifyJobError(job.jobId, e)
-            }
+            logger.info("Processing due jobs...")
+            executor.execute(
+                job = job,
+                onSuccess = { handleJobCompletion(job, now) },
+                onError = { exc -> handleJobError(job, now, exc) }
+            )
         }
     }
 
     // Handles the completion of a job by updating the next run time or removing the job.
     private fun handleJobCompletion(job: Job, now: ZonedDateTime) {
+        setNextRunTimeOrRemoveJob(job, now)
+        notifyJobComplete(job.jobId)
+    }
+
+    // Handles an error encountered while executing a job.
+    private fun handleJobError(job: Job, now: ZonedDateTime, exception: Exception) {
+        logger.severe("Error executing job ${job.jobId}: $exception")
+        setNextRunTimeOrRemoveJob(job, now)
+        notifyJobError(job.jobId, exception)
+    }
+
+    private fun setNextRunTimeOrRemoveJob(job: Job, now: ZonedDateTime) {
         val nextRunTime = job.trigger.getNextRunTime(now, timeZone)
         if (nextRunTime != null) {
             logger.info("Updating next run time for job ${job.jobId} to $nextRunTime")
@@ -211,7 +254,6 @@ class KtScheduler(
             logger.info("Removing job ${job.jobId} as it has no next run time")
             jobStore.removeJob(job.jobId)
         }
-        notifyJobComplete(job.jobId)
     }
 
     // Notifies listeners that a job has completed successfully.

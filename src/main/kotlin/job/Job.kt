@@ -34,7 +34,7 @@ data class Job(
     /**
      * The next time the job should run.
      */
-    var nextRunTime: ZonedDateTime,
+    val nextRunTime: ZonedDateTime,
 
     /**
      * The dispatcher to run the job on.
