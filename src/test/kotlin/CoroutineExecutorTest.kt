@@ -68,7 +68,7 @@ class CoroutineExecutorTest {
         val onError: (Throwable) -> Unit = { fail("onError should not be called") }
 
         executor.execute(job, onSuccess, onError)
-        delay(250)
+        Thread.sleep(100)
         assertTrue(onSuccessCalled)
     }
 
@@ -87,7 +87,7 @@ class CoroutineExecutorTest {
         val onError: (Throwable) -> Unit = { exception = it }
 
         executor.execute(job, onSuccess, onError)
-        delay(250)
+        Thread.sleep(100)
 
         assertNotNull(exception)
         assertTrue(exception is IllegalArgumentException)
