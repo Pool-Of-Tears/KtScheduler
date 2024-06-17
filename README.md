@@ -32,7 +32,7 @@ Add the dependency:
 
 ```kotlin
 dependencies {
-    implementation 'com.github.starry-shivam:KtScheduler:1.0.0'
+    implementation 'com.github.starry-shivam:KtScheduler:Tag'
 }
 ```
 
