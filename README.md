@@ -17,7 +17,7 @@
 
 ------
 
-### 🛠️ Installation
+### Installation 🛠️
 
 Add the Jitpack repository in your build configuration:
 
@@ -38,7 +38,7 @@ dependencies {
 
 ------
 
-### 📑 Documentation
+### Documentation 📑
 
 Here's a quick start:
 
@@ -152,19 +152,19 @@ scheduler.addEventListener(eventListener)
 ```
 ------
 
-#### 🫶 Contributing
+#### Contributing 🫶
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change, or feel free to tackle any of the open issues present at the moment. If you're doing the latter, please leave a comment on the issue you want to contribute to before starting to work on it.
 
 ------
 
-#### ♥️ Supporting
+#### Supporting ❤️
 
 If you found this library helpful, you can support me by giving a small tip via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and joining the list of stargazers 🌟
 
 ------
 
-#### ©️ License
+#### License ©️
 ```
 Copyright [2024 - Present] starry-shivam
 
