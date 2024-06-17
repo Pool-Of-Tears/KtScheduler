@@ -1,9 +1,10 @@
 plugins {
     kotlin("jvm") version "2.0.0"
+    `maven-publish`
 }
 
 group = "dev.starry.ktscheduler"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -19,3 +20,17 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:4.6.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
 }
+
+
+publishing {
+    publications {
+        register("mavenJava", MavenPublication::class) {
+            groupId = "dev.starry.ktscheduler"
+            artifactId = "ktscheduler"
+            version = "1.0.0"
+            from(components["java"])
+        }
+    }
+}
+
+
