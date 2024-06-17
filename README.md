@@ -40,7 +40,7 @@ dependencies {
 
 ### 📑 Documentation
 
-Here's quick start:
+Here's a quick start:
 
 ```kotlin
 val timeZone = ZoneId.of("Asia/Kolkata")
@@ -104,7 +104,8 @@ val trigger = OneTimeTrigger(ZonedDateTime.now(timeZone).plusSeconds(5))
 
 ##### Creating Your Own Trigger
 
-You can easily create your own custom trigger by implementing the `Trigger` interface. Here's an example to create a `WeekendTrigger`, a trigger that should fire on weekends at a specified time.
+You can easily create your own custom trigger by implementing the `Trigger` interface.
+Here's an example to create a `WeekendTrigger`, a trigger that should fire on weekends at a specified time.
 
 ```kotlin
 
