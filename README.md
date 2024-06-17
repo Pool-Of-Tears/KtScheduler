@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/starry-shivam/KtScheduler">
-  <img width="200" height="200" align="start" src="./assets/KtScheduler_Icon.png" alt="KtScheduler Logo">
+  <img width="180" height="180" align="start" src="./assets/KtScheduler_Icon.png" alt="KtScheduler Logo">
   </a>
   <h2>KtScheduler: Kotlin Task Scheduler</h2>
 </div>
@@ -9,8 +9,8 @@
   <img alt="GitHub" src="https://img.shields.io/github/license/Pool-Of-Tears/Myne">
   <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/starry-shivam/KtScheduler">
   <a href="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml"><img src="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
+  <a href="https://github.com/starry-shivam/KtScheduler/releases"><img src="https://img.shields.io/github/v/tag/starry-shivam/KtScheduler" alt="version"></a>
   <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed." /></a>
-
 </p>
 
 **KtScheduler** is a lightweight task/job scheduling library for Kotlin, powered by Kotlin coroutines! The design of this library is inspired by the [APScheduler](https://github.com/agronholm/apscheduler) library for Python, while keeping things simple and easy to use.
@@ -170,7 +170,7 @@ Copyright [2024 - Present] starry-shivam
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+You may obtain a copy of the License at
 
      http://www.apache.org/licenses/LICENSE-2.0
 
