@@ -58,10 +58,6 @@ class KtScheduler(
         private val logger = Logger.getLogger(TAG)
     }
 
-    // The coroutine scope with a SupervisorJob to prevent cancellation of all jobs
-    // if one of them fails.
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
     // The list of event listeners attached to the scheduler.
     private val eventListeners = mutableListOf<JobEventListener>()
 
@@ -77,14 +73,26 @@ class KtScheduler(
     // The tick interval in milliseconds.
     private val tickInterval = 100L
 
+    // The coroutine scope with a SupervisorJob to prevent cancellation of all jobs
+    // if one of them fails.
+    private lateinit var coroutineScope: CoroutineScope
+
     /**
      * Starts the scheduler.
      *
      * The scheduler will run in a coroutine and continuously process due jobs
      * at the specified tick interval unless it is paused or shut down.
+     *
+     * @throws IllegalStateException If the scheduler is already running.
      */
     override fun start() {
+        // Check if the scheduler is already running.
+        if (::coroutineScope.isInitialized && coroutineScope.isActive) {
+            throw IllegalStateException("Scheduler is already running")
+        }
+        // Start the scheduler.
         logger.info("Starting scheduler")
+        coroutineScope = createCoroutineScope()
         coroutineScope.launch {
             while (isActive) {
                 if (!isPaused) {
@@ -230,6 +238,9 @@ class KtScheduler(
     override fun addEventListener(listener: JobEventListener) {
         eventListeners.add(listener)
     }
+
+    // Creates a new coroutine scope.
+    private fun createCoroutineScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // Processes due jobs and executes them.
     private suspend fun processDueJobs() {
