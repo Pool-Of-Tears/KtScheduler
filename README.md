@@ -7,10 +7,12 @@
 
 <p align="center">
   <img alt="GitHub" src="https://img.shields.io/github/license/Pool-Of-Tears/Myne">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/starry-shivam/040646868c4c6473297b0d4e1546bf21/raw/fb1f5b7d6822d0d4fcbd7d2133bed9acf652c49e/KtScheduler_coverage_badge.json" alt="coverage badge">
   <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/starry-shivam/KtScheduler">
   <a href="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml"><img src="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
   <a href="https://github.com/starry-shivam/KtScheduler/releases"><img src="https://img.shields.io/github/v/tag/starry-shivam/KtScheduler" alt="version"></a>
   <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed." /></a>
+
 </p>
 
 **KtScheduler** is a lightweight task/job scheduling library for Kotlin, powered by Kotlin coroutines! The design of
@@ -52,7 +54,8 @@ val job = Job(
     jobId = "OneTimeJob", // Must be unique for each job
     function = { println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}") },
     trigger = OneTimeTrigger(ZonedDateTime.now(timeZone).plusSeconds(5)),
-    // Next runtime of the job; when creating the job for the first time, it will be used as the initial runtime.
+    // Next runtime of the job; when creating the job for the first time,
+    // it will be used as the initial runtime.
     nextRunTime = ZonedDateTime.now(timeZone).plusSeconds(5),
     // Coroutine dispatcher in which the job should be executed.
     dispatcher = Dispatchers.Default
@@ -168,7 +171,7 @@ the issue you want to contribute to before starting to work on it.
 ### Supporting ❤️
 
 If you found this library helpful, you can support me by giving a small tip
-via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and joining the list of stargazers 🌟
+via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and/or joing the list of [stargazers](https://github.com/starry-shivam/KtScheduler/stargazers) by leaving a star! 🌟
 
 ------
 
