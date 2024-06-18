@@ -13,7 +13,9 @@
   <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed." /></a>
 </p>
 
-**KtScheduler** is a lightweight task/job scheduling library for Kotlin, powered by Kotlin coroutines! The design of this library is inspired by the [APScheduler](https://github.com/agronholm/apscheduler) library for Python, while keeping things simple and easy to use.
+**KtScheduler** is a lightweight task/job scheduling library for Kotlin, powered by Kotlin coroutines! The design of
+this library is inspired by the [APScheduler](https://github.com/agronholm/apscheduler) library for Python, while
+keeping things simple and easy to use.
 
 ------
 
@@ -66,7 +68,8 @@ scheduler.idle()
 
 #### Triggers
 
-Triggers determine when and at what frequency a particular job should be executed. KtScheduler provides four types of triggers:
+Triggers determine when and at what frequency a particular job should be executed. KtScheduler provides four types of
+triggers:
 
 1. `CronTrigger` - A trigger that determines the next run time based on the specified days of the week and time.
 
@@ -131,7 +134,8 @@ class WeekendTrigger(private val time: LocalTime) : Trigger {
 
 #### Listening for Job Events
 
-You can listen for job events such as completion or failure due to errors by attaching a `JobEventListener` to the `KtScheduler`. Here's an example:
+You can listen for job events such as completion or failure due to errors by attaching a `JobEventListener` to
+the `KtScheduler`. Here's an example:
 
 ```kotlin
 import dev.starry.ktscheduler.event.JobEvent
@@ -150,21 +154,26 @@ class MyEventListener : JobEventListener {
 val eventListener = MyEventListener()
 scheduler.addEventListener(eventListener)
 ```
-------
-
-#### Contributing 🫶
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change, or feel free to tackle any of the open issues present at the moment. If you're doing the latter, please leave a comment on the issue you want to contribute to before starting to work on it.
 
 ------
 
-#### Supporting ❤️
+### Contributing 🫶
 
-If you found this library helpful, you can support me by giving a small tip via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and joining the list of stargazers 🌟
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change, or
+feel free to tackle any of the open issues present at the moment. If you're doing the latter, please leave a comment on
+the issue you want to contribute to before starting to work on it.
 
 ------
 
-#### License ©️
+### Supporting ❤️
+
+If you found this library helpful, you can support me by giving a small tip
+via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and joining the list of stargazers 🌟
+
+------
+
+### License ©️
+
 ```
 Copyright [2024 - Present] starry-shivam
 

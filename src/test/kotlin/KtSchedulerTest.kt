@@ -20,8 +20,8 @@ package dev.starry.ktscheduler.test
 import dev.starry.ktscheduler.event.JobEvent
 import dev.starry.ktscheduler.event.JobEventListener
 import dev.starry.ktscheduler.job.Job
-import dev.starry.ktscheduler.jobstore.InMemoryJobStore
 import dev.starry.ktscheduler.scheduler.KtScheduler
+import dev.starry.ktscheduler.triggers.IntervalTrigger
 import dev.starry.ktscheduler.triggers.OneTimeTrigger
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -30,10 +30,23 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.time.ZonedDateTime
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class KtSchedulerTest {
+
+    @Test
+    fun `scheduler should throw exception when starting if already running`() {
+        val scheduler = KtScheduler()
+        scheduler.start()
+        try {
+            scheduler.start()
+        } catch (e: IllegalStateException) {
+            assertEquals("Scheduler is already running", e.message)
+        }
+        scheduler.shutdown()
+    }
 
     @Test
     fun `addJob should add job to the scheduler`() {
@@ -85,6 +98,76 @@ class KtSchedulerTest {
     }
 
     @Test
+    fun `scheduler should not process jobs when paused`() {
+        val scheduler = KtScheduler()
+        val job = createTestJob("job1")
+        val eventListener = TestJobEventListener()
+
+        scheduler.addEventListener(eventListener)
+        scheduler.addJob(job)
+
+        // Start and pause scheduler
+        scheduler.start()
+        scheduler.pause()
+        Thread.sleep(1200)
+
+        // Job should not be completed
+        assertEquals(0, eventListener.completedJobs.size)
+        // job should not be removed as it is not completed.
+        val retrievedJob = scheduler.getJob("job1")
+        assertNotNull(retrievedJob)
+        assertEquals(job, retrievedJob)
+
+        // Resume scheduler
+        scheduler.resume()
+        Thread.sleep(1200)
+
+        // Job should be completed
+        assertEquals(1, eventListener.completedJobs.size)
+        assertEquals("job1", eventListener.completedJobs[0])
+
+        // One time trigger job should be removed after execution
+        val processedJob = scheduler.getJob("job1")
+        assertNull(processedJob)
+
+        scheduler.shutdown()
+    }
+
+    @Test
+    fun `scheduler should not process jobs when shutdown`() {
+        val scheduler = KtScheduler()
+        val job = createTestJob("job1")
+        val eventListener = TestJobEventListener()
+
+        scheduler.addEventListener(eventListener)
+        scheduler.addJob(job)
+
+        // Start and shutdown scheduler
+        scheduler.start()
+        scheduler.shutdown()
+
+        // Job should not be completed
+        assertEquals(0, eventListener.completedJobs.size)
+        // job should not be removed as it is not completed.
+        val retrievedJob = scheduler.getJob("job1")
+        assertNotNull(retrievedJob)
+        assertEquals(job, retrievedJob)
+
+        // Start scheduler again
+        scheduler.start()
+        Thread.sleep(1200)
+
+        // Job should be completed
+        assertEquals(1, eventListener.completedJobs.size)
+        assertEquals("job1", eventListener.completedJobs[0])
+
+        // One time trigger job should be removed after execution
+        val processedJob = scheduler.getJob("job1")
+        assertNull(processedJob)
+        scheduler.shutdown()
+    }
+
+    @Test
     fun `pauseJob and resumeJob should control individual job execution`() {
         val scheduler = KtScheduler()
         val job = createTestJob("job1")
@@ -99,8 +182,7 @@ class KtSchedulerTest {
 
     @Test
     fun `scheduler should process due jobs`(): Unit = runTest {
-        val jobStore = InMemoryJobStore()
-        val scheduler = KtScheduler(jobStore)
+        val scheduler = KtScheduler()
         val startTime = ZonedDateTime.now()
         // Job 1 should run after 1 second
         val job = createTestJob("job1", startTime.plusSeconds(1))
@@ -130,6 +212,44 @@ class KtSchedulerTest {
         assertNull(processedJob)
         assertNull(processedErrorJob)
         assertEquals(0, scheduler.getJobs().size)
+
+        scheduler.shutdown()
+    }
+
+    @Test
+    fun `scheduler should reschedule jobs with recurring triggers`(): Unit = runTest {
+        val scheduler = KtScheduler()
+        val startTime = ZonedDateTime.now()
+        // Job 1 should run after 1 second and then every 1 second
+        val job = Job(
+            jobId = "job1",
+            function = {},
+            trigger = IntervalTrigger(intervalSeconds = 1),
+            nextRunTime = startTime.plusSeconds(1)
+        )
+
+        scheduler.addJob(job)
+
+        val eventListener = TestJobEventListener()
+        scheduler.addEventListener(eventListener)
+
+        scheduler.start()
+        Thread.sleep(2100)
+
+        // Job 1 should be completed twice
+        assertEquals(2, eventListener.completedJobs.size)
+        assertEquals("job1", eventListener.completedJobs[0])
+        assertEquals("job1", eventListener.completedJobs[1])
+
+        // Job 1 should be rescheduled
+        val rescheduledJob = scheduler.getJob("job1")
+        assertNotNull(rescheduledJob)
+        assertEquals(startTime.plusSeconds(3).year, rescheduledJob.nextRunTime.year)
+        assertEquals(startTime.plusSeconds(3).month, rescheduledJob.nextRunTime.month)
+        assertEquals(startTime.plusSeconds(3).dayOfMonth, rescheduledJob.nextRunTime.dayOfMonth)
+        assertEquals(startTime.plusSeconds(3).hour, rescheduledJob.nextRunTime.hour)
+        assertEquals(startTime.plusSeconds(3).minute, rescheduledJob.nextRunTime.minute)
+        assertEquals(startTime.plusSeconds(3).second, rescheduledJob.nextRunTime.second)
 
         scheduler.shutdown()
     }

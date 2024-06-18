@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.0"
+    id("org.jetbrains.kotlinx.kover") version "0.8.1"
     `maven-publish`
 }
 
@@ -21,13 +22,18 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
 }
 
+kover {
+    reports {
+        verify { rule { minBound(70) } }
+    }
+}
 
 publishing {
     publications {
         register("mavenJava", MavenPublication::class) {
-            groupId = "dev.starry.ktscheduler"
+            groupId = group.toString()
             artifactId = "ktscheduler"
-            version = "1.0.0"
+            version = version.toString()
             from(components["java"])
         }
     }
