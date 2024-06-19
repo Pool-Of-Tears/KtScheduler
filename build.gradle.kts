@@ -32,6 +32,14 @@ kover {
     }
 }
 
+val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+
+val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
+}
+
 publishing {
     publications {
         register("mavenJava", MavenPublication::class) {
@@ -53,19 +61,10 @@ publishing {
                 }
             }
 
-            // Add Dokka and Javadoc artifacts.
-            artifact(tasks.dokkaJavadoc.get().outputDirectory)
-            artifact(tasks.dokkaHtml.get().outputDirectory)
+            // Add Javadoc JAR to the publication.
+            artifact(javadocJar)
         }
     }
-}
-
-tasks.dokkaHtml.configure {
-    outputDirectory.set(buildDir.resolve("dokka"))
-}
-
-tasks.dokkaJavadoc.configure {
-    outputDirectory.set(buildDir.resolve("javadoc"))
 }
 
 // Print line coverage percentage to console so we can generate badge in CI.
@@ -102,5 +101,3 @@ tasks.register("printLineCoverage") {
         println("%.1f".format(coveragePercent))
     }
 }
-
-
