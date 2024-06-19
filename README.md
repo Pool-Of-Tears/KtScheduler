@@ -7,7 +7,7 @@
 
 <p align="center">
   <img alt="GitHub" src="https://img.shields.io/github/license/Pool-Of-Tears/Myne">
-  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/starry-shivam/040646868c4c6473297b0d4e1546bf21/raw/fb1f5b7d6822d0d4fcbd7d2133bed9acf652c49e/KtScheduler_coverage_badge.json" alt="coverage badge">
+  <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/starry-shivam/040646868c4c6473297b0d4e1546bf21/raw/KtScheduler_coverage_badge.json" alt="coverage badge">
   <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/starry-shivam/KtScheduler">
   <a href="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml"><img src="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
   <a href="https://github.com/starry-shivam/KtScheduler/releases"><img src="https://img.shields.io/github/v/tag/starry-shivam/KtScheduler" alt="version"></a>
