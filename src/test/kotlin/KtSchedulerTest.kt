@@ -32,6 +32,7 @@ import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.fail
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class KtSchedulerTest {
@@ -42,6 +43,7 @@ class KtSchedulerTest {
         scheduler.start()
         try {
             scheduler.start()
+            fail("Should throw IllegalStateException")
         } catch (e: IllegalStateException) {
             assertEquals("Scheduler is already running", e.message)
         }
@@ -234,7 +236,7 @@ class KtSchedulerTest {
         scheduler.addEventListener(eventListener)
 
         scheduler.start()
-        Thread.sleep(2100)
+        Thread.sleep(2200)
 
         // Job 1 should be completed twice
         assertEquals(2, eventListener.completedJobs.size)
