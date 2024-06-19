@@ -40,6 +40,11 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     from(dokkaHtml.outputDirectory)
 }
 
+val sourcesJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
 publishing {
     publications {
         register("mavenJava", MavenPublication::class) {
@@ -72,6 +77,8 @@ publishing {
             afterEvaluate {
                 // Add Javadoc JAR to the publication.
                 artifact(javadocJar)
+                // Add sources JAR to the publication.
+                artifact(sourcesJar)
             }
         }
     }
