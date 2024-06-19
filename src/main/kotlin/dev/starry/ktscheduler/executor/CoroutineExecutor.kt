@@ -39,7 +39,7 @@ class CoroutineExecutor : Executor {
     ) {
         CoroutineScope(job.dispatcher).launch {
             try {
-                job.function()
+                job.callback()
                 withContext(Dispatchers.Default) {
                     onSuccess()
                 }

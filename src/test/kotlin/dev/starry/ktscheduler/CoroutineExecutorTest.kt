@@ -56,11 +56,10 @@ class CoroutineExecutorTest {
     fun testExecuteSuccess(): Unit = runTest {
         val job = Job(
             jobId = "testJob1",
-            function = { /* do nothing */ },
             trigger = trigger,
             nextRunTime = ZonedDateTime.now(),
             dispatcher = UnconfinedTestDispatcher(testScheduler)
-        )
+        ) { /* Do nothing */ }
 
         var onSuccessCalled = false
         val onSuccess: () -> Unit = { onSuccessCalled = true }
@@ -75,10 +74,10 @@ class CoroutineExecutorTest {
     fun testExecuteError(): Unit = runTest {
         val job = Job(
             jobId = "testJob2",
-            function = { throw IllegalArgumentException("Error") },
             trigger = trigger,
             nextRunTime = ZonedDateTime.now(),
-            dispatcher = UnconfinedTestDispatcher(testScheduler)
+            dispatcher = UnconfinedTestDispatcher(testScheduler),
+            callback =  { throw IllegalArgumentException("Error") },
         )
 
         val onSuccess: () -> Unit = { fail("onSuccess should not be called") }

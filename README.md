@@ -50,18 +50,28 @@ Here's a quick start:
 val timeZone = ZoneId.of("Asia/Kolkata")
 val scheduler = KtScheduler(timeZone = timeZone)
 
+// Create a job like this
 val job = Job(
     jobId = "OneTimeJob", // Must be unique for each job
-    function = { println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}") },
     trigger = OneTimeTrigger(ZonedDateTime.now(timeZone).plusSeconds(5)),
     // Next runtime of the job; when creating the job for the first time,
     // it will be used as the initial runtime.
     nextRunTime = ZonedDateTime.now(timeZone).plusSeconds(5),
     // Coroutine dispatcher in which the job should be executed.
-    dispatcher = Dispatchers.Default
+    dispatcher = Dispatchers.Default,
+    // Callback function that will be executed when the job is triggered.
+    callback = {
+        println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}")
+    }
 )
 
+// ..or like this
+val job = Job(...) { println("Meow >~<") }
+
+// Add the job to the scheduler
 scheduler.addJob(job)
+
+// Start the scheduler
 scheduler.start()
 
 // If you're running this as a standalone program, you need to block the current thread

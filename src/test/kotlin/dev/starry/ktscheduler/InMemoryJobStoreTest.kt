@@ -116,10 +116,10 @@ class InMemoryJobStoreTest {
     private fun createTestJob(jobId: String, nextRunTime: ZonedDateTime = ZonedDateTime.now()): Job {
         return Job(
             jobId = jobId,
-            function = {/* do nothing */ },
             trigger = OneTimeTrigger(nextRunTime),
             nextRunTime = nextRunTime,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.Default,
+            callback = { /* Do nothing */}
         )
     }
 }

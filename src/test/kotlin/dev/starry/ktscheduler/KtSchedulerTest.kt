@@ -256,9 +256,9 @@ class KtSchedulerTest {
         // Job 1 should run after 1 second and then every 1 second
         val job = Job(
             jobId = "job1",
-            function = {},
             trigger = IntervalTrigger(intervalSeconds = 1),
-            nextRunTime = startTime.plusSeconds(1)
+            nextRunTime = startTime.plusSeconds(1),
+            callback = { /* Do nothing */ }
         )
 
         scheduler.addJob(job)
@@ -293,13 +293,13 @@ class KtSchedulerTest {
         raiseError: Boolean = false
     ) = Job(
         jobId = jobId,
-        function = {
+        trigger = OneTimeTrigger(runAt),
+        nextRunTime = runAt,
+        callback = {
             if (raiseError) {
                 throw RuntimeException("Error")
             }
-        },
-        trigger = OneTimeTrigger(runAt),
-        nextRunTime = runAt,
+        }
     )
 
 
