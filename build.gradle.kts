@@ -53,7 +53,7 @@ publishing {
                 }
             }
 
-            // Add sources and javadoc to the publication.
+            // Add Dokka and Javadoc artifacts.
             artifact(tasks.dokkaJavadoc.get().outputDirectory)
             artifact(tasks.dokkaHtml.get().outputDirectory)
         }
