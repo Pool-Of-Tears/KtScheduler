@@ -3,6 +3,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 plugins {
     kotlin("jvm") version "2.0.0"
     id("org.jetbrains.kotlinx.kover") version "0.8.1"
+    id("org.jetbrains.dokka") version "1.9.20"
     `maven-publish`
 }
 
@@ -38,8 +39,33 @@ publishing {
             artifactId = "ktscheduler"
             version = version.toString()
             from(components["java"])
+
+            pom {
+                name.set("KtScheduler")
+                description.set("Coroutine-based task/job scheduler for Kotlin.")
+                url.set("https://github.com/Pool-Of-Tears/KtScheduler")
+
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+            }
+
+            // Add Dokka and Javadoc artifacts.
+            artifact(tasks.dokkaJavadoc.get().outputDirectory)
+            artifact(tasks.dokkaHtml.get().outputDirectory)
         }
     }
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir.resolve("dokka"))
+}
+
+tasks.dokkaJavadoc.configure {
+    outputDirectory.set(buildDir.resolve("javadoc"))
 }
 
 // Print line coverage percentage to console so we can generate badge in CI.

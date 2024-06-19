@@ -109,6 +109,10 @@ class KtScheduler(
      */
     override fun shutdown() {
         logger.info("Shutting down scheduler")
+        // Check if the scheduler is running or not.
+        if (!::coroutineScope.isInitialized || !coroutineScope.isActive) {
+            throw IllegalStateException("Scheduler is not running")
+        }
         coroutineScope.cancel()
         logger.info("Scheduler shut down")
     }
