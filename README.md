@@ -164,7 +164,8 @@ the issue you want to contribute to before starting to work on it.
 ### Supporting ❤️
 
 If you found this library helpful, you can support me by giving a small tip
-via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and/or joing the list of [stargazers](https://github.com/starry-shivam/KtScheduler/stargazers) by leaving a star! 🌟
+via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and/or joing the list
+of [stargazers](https://github.com/starry-shivam/KtScheduler/stargazers) by leaving a star! 🌟
 
 ------
 

@@ -51,6 +51,37 @@ class KtSchedulerTest {
     }
 
     @Test
+    fun `scheduler should throw exception when shutting down if not running`() {
+        val scheduler = KtScheduler()
+        try {
+            scheduler.shutdown()
+            fail("Should throw IllegalStateException")
+        } catch (e: IllegalStateException) {
+            assertEquals("Scheduler is not running", e.message)
+        }
+    }
+
+    @Test
+    fun `scheduler should block main thread when idle`() {
+        val thread = Thread {
+            try {
+                val scheduler = KtScheduler()
+                scheduler.start()
+                scheduler.idle()
+                fail("Should not reach here")
+            } catch (_: InterruptedException) {
+                assertTrue(Thread.interrupted())
+            }
+        }
+        thread.start()
+        Thread.sleep(500)
+        if (thread.isAlive) {
+            thread.interrupt()
+            thread.join()
+        }
+    }
+
+    @Test
     fun `addJob should add job to the scheduler`() {
         val scheduler = KtScheduler()
         val job = createTestJob("job1")
