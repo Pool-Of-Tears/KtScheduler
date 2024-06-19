@@ -25,7 +25,7 @@ keeping things simple and easy to use.
 
 Add the Jitpack repository in your build configuration:
 
-```kotlin
+```groovy
 repositories {
     ...
     maven { url 'https://www.jitpack.io' }
@@ -34,9 +34,9 @@ repositories {
 
 Add the dependency:
 
-```kotlin
+```groovy
 dependencies {
-    implementation 'com.github.starry-shivam:KtScheduler:Tag'
+    implementation 'com.github.Pool-Of-Tears:KtScheduler:Tag'
 }
 ```
 
@@ -79,9 +79,7 @@ triggers:
 ```kotlin
 // Days when the job should fire
 val daysOfWeek = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY)
-// 10:00 AM | Time of the day when the job should fire
-val time = LocalTime.of(10, 0)
-
+val time = LocalTime.of(10, 0) // 10:00 AM (Time of the day)
 val trigger = CronTrigger(daysOfWeek, time)
 ```
 
@@ -103,9 +101,8 @@ val trigger = IntervalTrigger(interval)
 4. `OneTimeTrigger` - A trigger that fires once at a specified time.
 
 ```kotlin
-val timeZone = ZoneId.of("Asia/Kolkata")
 // Run after 5 seconds
-val trigger = OneTimeTrigger(ZonedDateTime.now(timeZone).plusSeconds(5))
+val trigger = OneTimeTrigger(ZonedDateTime.now().plusSeconds(5))
 ```
 
 ##### Creating Your Own Trigger
@@ -114,7 +111,6 @@ You can easily create your own custom trigger by implementing the `Trigger` inte
 Here's an example to create a `WeekendTrigger`, a trigger that should fire on weekends at a specified time.
 
 ```kotlin
-
 import dev.starry.ktscheduler.triggers.Trigger
 
 class WeekendTrigger(private val time: LocalTime) : Trigger {
@@ -144,7 +140,7 @@ the `KtScheduler`. Here's an example:
 import dev.starry.ktscheduler.event.JobEvent
 import dev.starry.ktscheduler.event.JobEventListener
 
-class MyEventListener : JobEventListener {
+scheduler.addEventListener(object : JobEventListener {
     override fun onJobComplete(event: JobEvent) {
         println("Job ${event.jobId} completed successfully at ${event.timestamp}")
     }
@@ -152,10 +148,7 @@ class MyEventListener : JobEventListener {
     override fun onJobError(event: JobEvent) {
         println("Job ${event.jobId} failed with exception ${event.exception} at ${event.timestamp}")
     }
-}
-
-val eventListener = MyEventListener()
-scheduler.addEventListener(eventListener)
+})
 ```
 
 ------
