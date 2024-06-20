@@ -27,6 +27,7 @@ import java.time.ZonedDateTime
  * @param time The [LocalTime] at which the trigger should fire each day.
  */
 class DailyTrigger(private val time: LocalTime) : Trigger {
+
     /**
      * Gets the next run time based on the current time and the specified daily time.
      *

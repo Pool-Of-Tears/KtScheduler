@@ -17,21 +17,23 @@
 
 package dev.starry.ktscheduler.event
 
+
 /**
- * JobEventListener is an interface that is used to listen to the job events.
+ * Interface for listening to job events.
  */
 interface JobEventListener {
+
     /**
-     * This method is called when the job is completed.
+     * Called when a job completes successfully.
      *
-     * @param event The event that is triggered when the job is completed.
+     * @param event The event associated with the completed job.
      */
     fun onJobComplete(event: JobEvent)
 
     /**
-     * This method is called when there is an error while executing the job.
+     * Called when a job encounters an error.
      *
-     * @param event The event that is triggered when the job is started.
+     * @param event The event associated with the job error.
      */
     fun onJobError(event: JobEvent)
 }

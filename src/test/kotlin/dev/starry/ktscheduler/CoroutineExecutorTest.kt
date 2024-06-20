@@ -77,7 +77,7 @@ class CoroutineExecutorTest {
             trigger = trigger,
             nextRunTime = ZonedDateTime.now(),
             dispatcher = UnconfinedTestDispatcher(testScheduler),
-            callback =  { throw IllegalArgumentException("Error") },
+            callback = { throw IllegalArgumentException("Error") },
         )
 
         val onSuccess: () -> Unit = { fail("onSuccess should not be called") }

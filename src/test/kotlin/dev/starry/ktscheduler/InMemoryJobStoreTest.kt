@@ -119,7 +119,7 @@ class InMemoryJobStoreTest {
             trigger = OneTimeTrigger(nextRunTime),
             nextRunTime = nextRunTime,
             dispatcher = Dispatchers.Default,
-            callback = { /* Do nothing */}
+            callback = { /* Do nothing */ }
         )
     }
 }
