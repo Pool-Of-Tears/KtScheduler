@@ -277,6 +277,11 @@ class KtScheduler(
 
         dueJobs.forEach { job ->
             logger.info("Processing due jobs...")
+            // Set the next run time for the job or remove it if it has no next run time.
+            // We do this before executing the job to ensure that the job is not executed again
+            // if its task is long-running and the next run time is already due.
+            setNextRunTimeOrRemoveJob(job, now)
+            // Execute the job.
             executor.execute(
                 job = job,
                 onSuccess = { handleJobCompletion(job, now) },
@@ -287,14 +292,13 @@ class KtScheduler(
 
     // Handles the completion of a job by updating the next run time or removing the job.
     private fun handleJobCompletion(job: Job, now: ZonedDateTime) {
-        setNextRunTimeOrRemoveJob(job, now)
+        logger.info("Job ${job.jobId} completed successfully")
         notifyJobComplete(job.jobId)
     }
 
     // Handles an error encountered while executing a job.
     private fun handleJobError(job: Job, now: ZonedDateTime, exception: Exception) {
         logger.severe("Error executing job ${job.jobId}: $exception")
-        setNextRunTimeOrRemoveJob(job, now)
         notifyJobError(job.jobId, exception)
     }
 
