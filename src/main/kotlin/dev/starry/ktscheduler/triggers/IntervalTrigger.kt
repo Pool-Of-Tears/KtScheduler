@@ -26,6 +26,7 @@ import java.time.ZonedDateTime
  * @param intervalSeconds The interval, in seconds, between each trigger execution.
  */
 class IntervalTrigger(private val intervalSeconds: Long) : Trigger {
+
     /**
      * Gets the next run time based on the current time and the specified interval.
      *

@@ -44,6 +44,11 @@ dependencies {
 
 ### Documentation 📑
 
+> [!Note]
+>
+> Full documentation for all classes and functions in KDoc format can be
+> found [here](https://javadoc.jitpack.io/com/github/Pool-Of-Tears/KtScheduler/latest/javadoc/index.html).
+
 Here's a quick start:
 
 ```kotlin

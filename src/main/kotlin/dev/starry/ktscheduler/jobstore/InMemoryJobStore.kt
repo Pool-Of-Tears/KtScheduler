@@ -72,9 +72,7 @@ class InMemoryJobStore : JobStore {
      * @param nextRunTime The new next run time.
      */
     override fun updateJobNextRunTime(jobId: String, nextRunTime: ZonedDateTime) {
-        jobs[jobId]?.let {
-            jobs[jobId] = it.copy(nextRunTime = nextRunTime)
-        }
+        jobs[jobId]?.let { jobs[jobId] = it.copy(nextRunTime = nextRunTime) }
     }
 
     /**

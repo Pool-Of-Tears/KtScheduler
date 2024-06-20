@@ -26,6 +26,7 @@ import java.time.ZonedDateTime
  * @param runAt The [ZonedDateTime] at which the trigger should fire.
  */
 class OneTimeTrigger(private val runAt: ZonedDateTime) : Trigger {
+
     /**
      * Gets the next run time based on the current time and the specified run time.
      *

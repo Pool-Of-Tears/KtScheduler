@@ -32,6 +32,14 @@ class CronTrigger(
     private val daysOfWeek: Set<DayOfWeek>,
     private val time: LocalTime
 ) : Trigger {
+
+    /**
+     * Returns the next run time based on the specified days of the week and time.
+     *
+     * @param currentTime The current time as a [ZonedDateTime].
+     * @param timeZone The time zone in which the trigger is operating.
+     * @return The next run time as a [ZonedDateTime].
+     */
     override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime? {
         var nextRunTime = currentTime.withZoneSameInstant(timeZone).with(time).withNano(0)
         if (nextRunTime.isBefore(currentTime) || nextRunTime.isEqual(currentTime)) {
