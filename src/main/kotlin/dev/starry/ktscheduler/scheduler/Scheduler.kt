@@ -35,7 +35,6 @@ interface Scheduler {
      */
     fun shutdown()
 
-
     /**
      * Idles the scheduler.
      *
@@ -43,6 +42,13 @@ interface Scheduler {
      * the scheduler is shut down.
      */
     fun idle()
+
+    /**
+     * Checks if the scheduler is running.
+     *
+     * @return `true` if the scheduler is running, `false` otherwise.
+     */
+    fun isRunning(): Boolean
 
     /**
      * Adds a job to the scheduler.

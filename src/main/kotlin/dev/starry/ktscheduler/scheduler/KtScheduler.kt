@@ -84,6 +84,8 @@ class KtScheduler(
      * at the specified tick interval unless it is paused or shut down.
      *
      * @throws IllegalStateException If the scheduler is already running.
+     *
+     * @see isRunning
      */
     override fun start() {
         // Check if the scheduler is already running.
@@ -106,6 +108,12 @@ class KtScheduler(
 
     /**
      * Shuts down the scheduler.
+     *
+     * The scheduler will stop processing due jobs and the coroutine scope will be cancelled.
+     *
+     * @throws IllegalStateException If the scheduler is not running.
+     *
+     * @see isRunning
      */
     override fun shutdown() {
         logger.info("Shutting down scheduler")
@@ -126,8 +134,22 @@ class KtScheduler(
     override fun idle() {
         logger.info("idling scheduler")
         while (coroutineScope.isActive) {
-            Thread.sleep(1000)
+            try {
+                Thread.sleep(1000)
+            } catch (e: InterruptedException) {
+                logger.severe("Stopping scheduler due to interruption: ${e.message}")
+                coroutineScope.cancel()
+            }
         }
+    }
+
+    /**
+     * Checks if the scheduler is running.
+     *
+     * @return `true` if the scheduler is running, `false` otherwise.
+     */
+    override fun isRunning(): Boolean {
+        return ::coroutineScope.isInitialized && coroutineScope.isActive
     }
 
     /**
@@ -276,6 +298,7 @@ class KtScheduler(
         notifyJobError(job.jobId, exception)
     }
 
+    // Sets the next run time for a job or removes it if it has no next run time.
     private fun setNextRunTimeOrRemoveJob(job: Job, now: ZonedDateTime) {
         val nextRunTime = job.trigger.getNextRunTime(now, timeZone)
         if (nextRunTime != null) {

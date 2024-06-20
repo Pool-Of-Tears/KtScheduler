@@ -46,6 +46,7 @@ class KtSchedulerTest {
             fail("Should throw IllegalStateException")
         } catch (e: IllegalStateException) {
             assertEquals("Scheduler is already running", e.message)
+            assertTrue(scheduler.isRunning())
         }
         scheduler.shutdown()
     }
@@ -58,27 +59,28 @@ class KtSchedulerTest {
             fail("Should throw IllegalStateException")
         } catch (e: IllegalStateException) {
             assertEquals("Scheduler is not running", e.message)
+            assertFalse(scheduler.isRunning())
         }
     }
 
     @Test
     fun `scheduler should block main thread when idle`() {
+        var shutdown = false
         val thread = Thread {
-            try {
-                val scheduler = KtScheduler()
-                scheduler.start()
-                scheduler.idle()
-                fail("Should not reach here")
-            } catch (_: InterruptedException) {
-                assertTrue(Thread.interrupted())
-            }
+            val scheduler = KtScheduler()
+            scheduler.start()
+            assertTrue(scheduler.isRunning())
+            scheduler.idle()
+            // Will reach here after interruption
+            shutdown = !scheduler.isRunning()
         }
         thread.start()
         Thread.sleep(500)
-        if (thread.isAlive) {
-            thread.interrupt()
-            thread.join()
-        }
+        assertFalse(shutdown) // Scheduler should be running
+        // Interrupt the thread
+        thread.interrupt()
+        thread.join()
+        assertTrue(shutdown) // Scheduler should be shutdown
     }
 
     @Test
@@ -267,7 +269,7 @@ class KtSchedulerTest {
         scheduler.addEventListener(eventListener)
 
         scheduler.start()
-        Thread.sleep(2200)
+        Thread.sleep(2100)
 
         // Job 1 should be completed twice
         assertEquals(2, eventListener.completedJobs.size)
