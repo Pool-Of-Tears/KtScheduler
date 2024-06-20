@@ -7,12 +7,11 @@
 
 <p align="center">
   <img alt="GitHub" src="https://img.shields.io/github/license/Pool-Of-Tears/Myne">
+  <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/Pool-Of-Tears/KtScheduler">
+  <a href="https://jitpack.io/#Pool-Of-Tears/KtScheduler"><img src="https://jitpack.io/v/Pool-Of-Tears/KtScheduler.svg" alt="Version Badge"></a>
   <img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/starry-shivam/040646868c4c6473297b0d4e1546bf21/raw/KtScheduler_coverage_badge.json" alt="coverage badge">
-  <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/starry-shivam/KtScheduler">
-  <a href="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml"><img src="https://github.com/starry-shivam/KtScheduler/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
-  <a href="https://github.com/starry-shivam/KtScheduler/releases"><img src="https://img.shields.io/github/v/tag/starry-shivam/KtScheduler" alt="version"></a>
+  <a href="https://github.com/Pool-Of-Tears/KtScheduler/actions/workflows/tests.yml"><img src="https://github.com/Pool-Of-Tears/KtScheduler/actions/workflows/tests.yml/badge.svg" alt="tests"></a>
   <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed." /></a>
-
 </p>
 
 **KtScheduler** is a lightweight task/job scheduling library for Kotlin, powered by Kotlin coroutines! The design of
@@ -25,18 +24,18 @@ keeping things simple and easy to use.
 
 Add the Jitpack repository in your build configuration:
 
-```groovy
+```kotlin
 repositories {
     ...
-    maven { url 'https://www.jitpack.io' }
+    maven("https://jitpack.io")
 }
 ```
 
 Add the dependency:
 
-```groovy
+```kotlin
 dependencies {
-    implementation 'com.github.Pool-Of-Tears:KtScheduler:Tag'
+    implementation("com.github.Pool-Of-Tears:KtScheduler:version")
 }
 ```
 
@@ -65,9 +64,7 @@ val job = Job(
     // Coroutine dispatcher in which the job should be executed.
     dispatcher = Dispatchers.Default,
     // Callback function that will be executed when the job is triggered.
-    callback = {
-        println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}")
-    }
+    callback = { println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}") }
 )
 
 // ..or like this
