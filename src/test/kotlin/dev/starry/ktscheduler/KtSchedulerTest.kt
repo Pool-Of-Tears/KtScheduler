@@ -269,7 +269,7 @@ class KtSchedulerTest {
         scheduler.addEventListener(eventListener)
 
         scheduler.start()
-        Thread.sleep(2200)
+        Thread.sleep(2100)
 
         // Job 1 should be completed twice
         assertEquals(2, eventListener.completedJobs.size)
