@@ -26,6 +26,7 @@ import dev.starry.ktscheduler.triggers.OneTimeTrigger
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.time.ZonedDateTime
@@ -287,6 +288,33 @@ class KtSchedulerTest {
         assertEquals(startTime.plusSeconds(3).second, rescheduledJob.nextRunTime.second)
 
         scheduler.shutdown()
+    }
+
+    @Test
+    fun `scheduler should not execute job multiple times if it is still running`(): Unit = runTest {
+        val scheduler = KtScheduler()
+
+        // Create a job that takes 2 seconds to execute
+        val job = Job(
+            jobId = "longRunningJob",
+            trigger = IntervalTrigger(intervalSeconds = 1),
+            nextRunTime = ZonedDateTime.now().plusSeconds(1),
+            callback = { delay(2000) }
+        )
+        val eventListener = TestJobEventListener()
+
+        scheduler.addJob(job)
+        scheduler.addEventListener(eventListener)
+        scheduler.start()
+        Thread.sleep(200)
+        // Job should not be completed yet
+        assertEquals(0, eventListener.completedJobs.size)
+        // Wait for enough time to ensure job has run
+        Thread.sleep(3000)
+        scheduler.shutdown()
+        // Assert that the job was only executed once
+        assertEquals(1, eventListener.completedJobs.size)
+        assertEquals("longRunningJob", eventListener.completedJobs[0])
     }
 
     private fun createTestJob(
