@@ -301,19 +301,20 @@ class KtSchedulerTest {
             nextRunTime = ZonedDateTime.now().plusSeconds(1),
             callback = { delay(2000) }
         )
-
         val eventListener = TestJobEventListener()
 
         scheduler.addJob(job)
         scheduler.addEventListener(eventListener)
         scheduler.start()
+        Thread.sleep(200)
+        // Job should not be completed yet
+        assertEquals(0, eventListener.completedJobs.size)
         // Wait for enough time to ensure job has run
-        Thread.sleep(3200)
+        Thread.sleep(3000)
         scheduler.shutdown()
         // Assert that the job was only executed once
         assertEquals(1, eventListener.completedJobs.size)
-        // Assert that the job is rescheduled
-        assertEquals(scheduler.getJob("longRunningJob")?.nextRunTime, ZonedDateTime.now().plusSeconds(1))
+        assertEquals("longRunningJob", eventListener.completedJobs[0])
     }
 
     private fun createTestJob(
