@@ -65,24 +65,22 @@ class KtSchedulerTest {
 
     @Test
     fun `scheduler should block main thread when idle`() {
+        var shutdown = false
         val thread = Thread {
             val scheduler = KtScheduler()
-            try {
-                scheduler.start()
-                scheduler.idle()
-                if (scheduler.isRunning()) {
-                    fail("Should not be running")
-                }
-            } catch (_: InterruptedException) {
-                assertFalse(scheduler.isRunning())
-            }
+            scheduler.start()
+            assertTrue(scheduler.isRunning())
+            scheduler.idle()
+            // Will reach here after interruption
+            shutdown = !scheduler.isRunning()
         }
         thread.start()
         Thread.sleep(500)
-        if (thread.isAlive) {
-            thread.interrupt()
-            thread.join()
-        }
+        assertFalse(shutdown) // Scheduler should be running
+        // Interrupt the thread
+        thread.interrupt()
+        thread.join()
+        assertTrue(shutdown) // Scheduler should be shutdown
     }
 
     @Test
