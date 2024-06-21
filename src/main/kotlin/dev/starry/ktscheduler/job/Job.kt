@@ -28,6 +28,7 @@ import java.time.ZonedDateTime
  * @property jobId A unique identifier for the job.
  * @property trigger The trigger that determines when the job should run.
  * @property nextRunTime The next time the job should run.
+ * @property runConcurrently Whether to run multiple instances of this job concurrently.
  * @property dispatcher The dispatcher to run the job on.
  * @property callback The callback function to run when the job is triggered.
  */
@@ -49,7 +50,14 @@ data class Job(
     val nextRunTime: ZonedDateTime,
 
     /**
+     * Whether to run multiple instances of this job concurrently.
+     * Default is true.
+     */
+    val runConcurrently: Boolean = true,
+
+    /**
      * The dispatcher to run the job on.
+     * Default is [Dispatchers.Default].
      */
     val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 

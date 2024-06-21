@@ -21,11 +21,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * An executor that executes jobs using coroutines.
  */
 class CoroutineExecutor : Executor {
+
+    // A map of currently running jobs.
+    private val runningJobs = ConcurrentHashMap<String, Job>()
 
     /**
      * Executes the given job.
@@ -37,16 +41,23 @@ class CoroutineExecutor : Executor {
     override suspend fun execute(
         job: Job, onSuccess: () -> Unit, onError: (Exception) -> Unit
     ) {
+        // If the job is not allowed to run concurrently and a job with the
+        // same ID is already running, return.
+        if (!job.runConcurrently && runningJobs.containsKey(job.jobId)) {
+            return
+        }
+
         CoroutineScope(job.dispatcher).launch {
+            // Add the job to the running jobs map.
+            runningJobs[job.jobId] = job
             try {
                 job.callback()
-                withContext(Dispatchers.Default) {
-                    onSuccess()
-                }
+                withContext(Dispatchers.Default) { onSuccess() }
             } catch (exc: Exception) {
-                withContext(Dispatchers.Default) {
-                    onError(exc)
-                }
+                withContext(Dispatchers.Default) { onError(exc) }
+            } finally {
+                // Remove the job from the running jobs map.
+                runningJobs.remove(job.jobId)
             }
         }
     }
