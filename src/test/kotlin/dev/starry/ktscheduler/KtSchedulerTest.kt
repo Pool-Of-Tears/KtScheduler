@@ -341,8 +341,8 @@ class KtSchedulerTest {
         // Assert that the job was only executed once in 3 seconds
         // because the job is not run concurrently and it takes 2 seconds to execute
         assertEquals(1, eventListener.completedJobs.size)
-        Thread.sleep(1100)
         // Assert that the job was executed twice after 4 seconds
+        Thread.sleep(1100)
         assertEquals(2, eventListener.completedJobs.size)
         assertEquals("longRunningJob", eventListener.completedJobs[0])
         assertEquals("longRunningJob", eventListener.completedJobs[1])

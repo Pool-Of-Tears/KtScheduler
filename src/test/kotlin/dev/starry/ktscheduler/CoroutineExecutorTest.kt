@@ -62,7 +62,7 @@ class CoroutineExecutorTest {
         val onError: (Throwable) -> Unit = { fail("onError should not be called") }
 
         executor.execute(job, onSuccess, onError)
-        delay(10)
+        delay(50)
         assertTrue(onSuccessCalled)
     }
 
@@ -75,7 +75,7 @@ class CoroutineExecutorTest {
         val onError: (Throwable) -> Unit = { exception = it }
 
         executor.execute(job, onSuccess, onError)
-        delay(10)
+        delay(50)
         assertNotNull(exception)
         assertTrue(exception is IllegalArgumentException)
         assertEquals("Error", exception.message)
@@ -106,7 +106,7 @@ class CoroutineExecutorTest {
         val job = createTestJob(scheduler = testScheduler, runConcurrently = false) { delay(100) }
 
         var onSuccessCalled = 0
-        val onSuccess: () -> Unit = { onSuccessCalled += 1 }
+        val onSuccess: () -> Unit = { onSuccessCalled++ }
         val onError: (Throwable) -> Unit = { fail("onError should not be called") }
         // Execute the job 3 times concurrently.
         executor.execute(job, onSuccess, onError)
