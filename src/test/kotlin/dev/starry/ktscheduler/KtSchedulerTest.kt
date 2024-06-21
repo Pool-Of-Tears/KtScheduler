@@ -317,6 +317,67 @@ class KtSchedulerTest {
         assertEquals("longRunningJob", eventListener.completedJobs[0])
     }
 
+    @Test
+    fun `scheduler should not execute job concurrently if runConcurrently is false`(): Unit = runTest {
+        val scheduler = KtScheduler()
+
+        // Create a job that takes 2 seconds to execute
+        val job = Job(
+            jobId = "longRunningJob",
+            trigger = IntervalTrigger(intervalSeconds = 1),
+            nextRunTime = ZonedDateTime.now(),
+            callback = { delay(2000) },
+            runConcurrently = false
+        )
+        val eventListener = TestJobEventListener()
+
+        scheduler.addJob(job)
+        scheduler.addEventListener(eventListener)
+        scheduler.start()
+        // Job should not be completed yet
+        assertEquals(0, eventListener.completedJobs.size)
+        // Wait for 3 seconds
+        Thread.sleep(3000)
+        // Assert that the job was only executed once in 3 seconds
+        // because the job is not run concurrently and it takes 2 seconds to execute
+        assertEquals(1, eventListener.completedJobs.size)
+        // Assert that the job was executed twice after 4 seconds
+        Thread.sleep(1100)
+        assertEquals(2, eventListener.completedJobs.size)
+        assertEquals("longRunningJob", eventListener.completedJobs[0])
+        assertEquals("longRunningJob", eventListener.completedJobs[1])
+        scheduler.shutdown()
+    }
+
+    @Test
+    fun `scheduler should execute job concurrently if runConcurrently is true`(): Unit = runTest {
+        val scheduler = KtScheduler()
+
+        // Create a job that takes 2 seconds to execute
+        val job = Job(
+            jobId = "longRunningJob",
+            trigger = IntervalTrigger(intervalSeconds = 1),
+            nextRunTime = ZonedDateTime.now(),
+            callback = { delay(2000) },
+            runConcurrently = true
+        )
+        val eventListener = TestJobEventListener()
+
+        scheduler.addJob(job)
+        scheduler.addEventListener(eventListener)
+        scheduler.start()
+        // Job should not be completed yet
+        assertEquals(0, eventListener.completedJobs.size)
+        // Wait for 3 seconds and shutdown the scheduler
+        Thread.sleep(3100)
+        scheduler.shutdown()
+        // Assert that the job was executed twice in 3 seconds
+        // because the job is run concurrently and it takes 2 seconds to execute
+        assertEquals(2, eventListener.completedJobs.size)
+        assertEquals("longRunningJob", eventListener.completedJobs[0])
+        assertEquals("longRunningJob", eventListener.completedJobs[1])
+    }
+
     private fun createTestJob(
         jobId: String,
         runAt: ZonedDateTime = ZonedDateTime.now().plusSeconds(1),

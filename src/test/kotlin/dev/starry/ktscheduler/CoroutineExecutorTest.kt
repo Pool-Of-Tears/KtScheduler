@@ -23,6 +23,8 @@ import dev.starry.ktscheduler.triggers.OneTimeTrigger
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -54,41 +56,78 @@ class CoroutineExecutorTest {
 
     @Test
     fun testExecuteSuccess(): Unit = runTest {
-        val job = Job(
-            jobId = "testJob1",
-            trigger = trigger,
-            nextRunTime = ZonedDateTime.now(),
-            dispatcher = UnconfinedTestDispatcher(testScheduler)
-        ) { /* Do nothing */ }
-
+        val job = createTestJob(scheduler = testScheduler) { }
         var onSuccessCalled = false
         val onSuccess: () -> Unit = { onSuccessCalled = true }
         val onError: (Throwable) -> Unit = { fail("onError should not be called") }
 
         executor.execute(job, onSuccess, onError)
-        Thread.sleep(100)
+        delay(50)
         assertTrue(onSuccessCalled)
     }
 
     @Test
     fun testExecuteError(): Unit = runTest {
-        val job = Job(
-            jobId = "testJob2",
-            trigger = trigger,
-            nextRunTime = ZonedDateTime.now(),
-            dispatcher = UnconfinedTestDispatcher(testScheduler),
-            callback = { throw IllegalArgumentException("Error") },
-        )
+        val job = createTestJob(scheduler = testScheduler) { throw IllegalArgumentException("Error") }
 
         val onSuccess: () -> Unit = { fail("onSuccess should not be called") }
         var exception: Throwable? = null
         val onError: (Throwable) -> Unit = { exception = it }
 
         executor.execute(job, onSuccess, onError)
-        Thread.sleep(100)
-
+        delay(50)
         assertNotNull(exception)
         assertTrue(exception is IllegalArgumentException)
         assertEquals("Error", exception.message)
     }
+
+    @Test
+    fun testConcurrentExecution(): Unit = runTest {
+        // Create a job that takes 100ms to execute.
+        val job = createTestJob(
+            scheduler = testScheduler, runConcurrently = true
+        ) { delay(100) }
+
+        var onSuccessCalled = 0
+        val onSuccess: () -> Unit = { onSuccessCalled += 1 }
+        val onError: (Throwable) -> Unit = { fail("onError should not be called") }
+        // Execute the job 3 times concurrently.
+        executor.execute(job, onSuccess, onError)
+        executor.execute(job, onSuccess, onError)
+        executor.execute(job, onSuccess, onError)
+        // Wait for the jobs to complete.
+        delay(110)
+        assertEquals(3, onSuccessCalled)
+    }
+
+    @Test
+    fun testNonConcurrentExecution(): Unit = runTest {
+        // Create a job that takes 100ms to execute.
+        val job = createTestJob(scheduler = testScheduler, runConcurrently = false) { delay(100) }
+
+        var onSuccessCalled = 0
+        val onSuccess: () -> Unit = { onSuccessCalled++ }
+        val onError: (Throwable) -> Unit = { fail("onError should not be called") }
+        // Execute the job 3 times concurrently.
+        executor.execute(job, onSuccess, onError)
+        executor.execute(job, onSuccess, onError)
+        executor.execute(job, onSuccess, onError)
+        // Wait for the jobs to complete.
+        delay(110)
+        assertEquals(1, onSuccessCalled)
+    }
+
+    private fun createTestJob(
+        jobId: String = "job1",
+        runConcurrently: Boolean = true,
+        scheduler: TestCoroutineScheduler,
+        callback: suspend () -> Unit,
+    ): Job = Job(
+        jobId = jobId,
+        trigger = trigger,
+        nextRunTime = ZonedDateTime.now(),
+        dispatcher = UnconfinedTestDispatcher(scheduler),
+        runConcurrently = runConcurrently,
+        callback = callback
+    )
 }
