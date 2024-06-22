@@ -20,7 +20,7 @@ keeping things simple and easy to use.
 
 ------
 
-### Featutes 🌟
+### Highlights ✨
 
 - Lightweight with no external dependencies other than `kotlinx:kotlinx-coroutines-core` from the Kotlin standard library.
 - Designed to respect time zones, allowing you to set the time zone yourself or use the system's time zone by default.
