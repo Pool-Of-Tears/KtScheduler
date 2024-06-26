@@ -77,13 +77,12 @@ val job = Job(
     // Callback function that will be executed when the job is triggered.
     callback = { println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}") }
 )
-// add the job to the scheduler
+// Add it to the scheduler
 scheduler.addJob(job)
 
-// ..or like this (shortcut/convinience method)
+// or like this! (shortcut / convinience method)
 // This will create a job with a unique ID and add it to the scheduler
-// See the documentation for more details on the parameters and other
-// such convinience methods.
+// See the documentation for more details on other such convinience methods.
 scheduler.runRepeating(intervalSeconds = 10) {
     println("Meow >~<") // every 10 seconds
 }
