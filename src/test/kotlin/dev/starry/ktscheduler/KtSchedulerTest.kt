@@ -21,6 +21,8 @@ import dev.starry.ktscheduler.event.JobEvent
 import dev.starry.ktscheduler.event.JobEventListener
 import dev.starry.ktscheduler.job.Job
 import dev.starry.ktscheduler.scheduler.KtScheduler
+import dev.starry.ktscheduler.triggers.CronTrigger
+import dev.starry.ktscheduler.triggers.DailyTrigger
 import dev.starry.ktscheduler.triggers.IntervalTrigger
 import dev.starry.ktscheduler.triggers.OneTimeTrigger
 import junit.framework.TestCase.assertFalse
@@ -29,6 +31,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.time.DayOfWeek
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -339,7 +343,7 @@ class KtSchedulerTest {
         // Wait for 3 seconds
         Thread.sleep(3000)
         // Assert that the job was only executed once in 3 seconds
-        // because the job is not run concurrently and it takes 2 seconds to execute
+        // because the job is not run concurrently, and it takes 2 seconds to execute
         assertEquals(1, eventListener.completedJobs.size)
         // Assert that the job was executed twice after 4 seconds
         Thread.sleep(1100)
@@ -372,10 +376,54 @@ class KtSchedulerTest {
         Thread.sleep(3100)
         scheduler.shutdown()
         // Assert that the job was executed twice in 3 seconds
-        // because the job is run concurrently and it takes 2 seconds to execute
+        // because the job is run concurrently, and it takes 2 seconds to execute
         assertEquals(2, eventListener.completedJobs.size)
         assertEquals("longRunningJob", eventListener.completedJobs[0])
         assertEquals("longRunningJob", eventListener.completedJobs[1])
+    }
+
+    @Test
+    fun `test runCron schedules the cron job`() {
+        val scheduler = KtScheduler()
+        val jobId = scheduler.runCron(setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY), LocalTime.of(10, 0)) {}
+        scheduler.getJob(jobId)?.let {
+            assertTrue(it.trigger is CronTrigger)
+            assertTrue(it.jobId.startsWith("runCron"))
+            assertEquals(it.jobId, jobId)
+        } ?: fail("Job not found")
+    }
+
+    @Test
+    fun `test runDaily schedules the daily job`() {
+        val scheduler = KtScheduler()
+        val jobId = scheduler.runDaily(dailyTime = LocalTime.of(10, 0)) {/* do nothing */ }
+        scheduler.getJob(jobId)?.let {
+            assertTrue(it.trigger is DailyTrigger)
+            assertTrue(it.jobId.startsWith("runDaily"))
+            assertEquals(it.jobId, jobId)
+        } ?: fail("Job not found")
+    }
+
+    @Test
+    fun `test runRepeating schedules the repeating job`() {
+        val scheduler = KtScheduler()
+        val jobId = scheduler.runRepeating(intervalSeconds = 10) {/* do nothing */ }
+        scheduler.getJob(jobId)?.let {
+            assertTrue(it.trigger is IntervalTrigger)
+            assertTrue(it.jobId.startsWith("runRepeating"))
+            assertEquals(it.jobId, jobId)
+        } ?: fail("Job not found")
+    }
+
+    @Test
+    fun `test runOnce schedules the one time job`() {
+        val scheduler = KtScheduler()
+        val jobId = scheduler.runOnce(ZonedDateTime.now().plusSeconds(10)) {/* do nothing */ }
+        scheduler.getJob(jobId)?.let {
+            assertTrue(it.trigger is OneTimeTrigger)
+            assertTrue(it.jobId.startsWith("runOnce"))
+            assertEquals(it.jobId, jobId)
+        } ?: fail("Job not found")
     }
 
     private fun createTestJob(

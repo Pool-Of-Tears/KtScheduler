@@ -23,6 +23,11 @@ import dev.starry.ktscheduler.executor.CoroutineExecutor
 import dev.starry.ktscheduler.job.Job
 import dev.starry.ktscheduler.jobstore.InMemoryJobStore
 import dev.starry.ktscheduler.jobstore.JobStore
+import dev.starry.ktscheduler.triggers.CronTrigger
+import dev.starry.ktscheduler.triggers.DailyTrigger
+import dev.starry.ktscheduler.triggers.IntervalTrigger
+import dev.starry.ktscheduler.triggers.OneTimeTrigger
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,9 +35,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.Duration
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.util.UUID
 import java.util.logging.Logger
 
 /**
@@ -88,12 +96,10 @@ class KtScheduler(
      * @see isRunning
      */
     override fun start() {
+        logger.info("Starting scheduler...")
         // Check if the scheduler is already running.
-        if (::coroutineScope.isInitialized && coroutineScope.isActive) {
-            throw IllegalStateException("Scheduler is already running")
-        }
-        // Start the scheduler.
-        logger.info("Starting scheduler")
+        check(!isRunning()) { "Scheduler is already running" }
+        // Create a new coroutine scope and start processing due jobs.
         coroutineScope = createCoroutineScope()
         coroutineScope.launch {
             while (isActive) {
@@ -103,7 +109,7 @@ class KtScheduler(
                 delay(tickInterval)
             }
         }
-        logger.info("Scheduler started")
+        logger.info("Scheduler started!")
     }
 
     /**
@@ -116,11 +122,9 @@ class KtScheduler(
      * @see isRunning
      */
     override fun shutdown() {
-        logger.info("Shutting down scheduler")
+        logger.info("Shutting down scheduler...")
         // Check if the scheduler is running or not.
-        if (!::coroutineScope.isInitialized || !coroutineScope.isActive) {
-            throw IllegalStateException("Scheduler is not running")
-        }
+        check(isRunning()) { "Scheduler is not running" }
         coroutineScope.cancel()
         logger.info("Scheduler shut down")
     }
@@ -265,6 +269,190 @@ class KtScheduler(
         eventListeners.add(listener)
     }
 
+    // ============================================================================================
+    // Convenience methods
+    // ============================================================================================
+
+    /**
+     * Schedules a job to run at a specific time on specific days of the week.
+     *
+     * This is a convenience method that creates a new job with a [CronTrigger] and adds it to the scheduler.
+     * It is equivalent to this code:
+     *
+     * ```
+     * val trigger = CronTrigger(daysOfWeek, time)
+     * val job = Job(
+     *    jobId = "runCron-${UUID.randomUUID()}",
+     *    trigger = trigger,
+     *    nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *    runConcurrently = runConcurrently,
+     *    dispatcher = dispatcher,
+     *    callback = callback
+     * )
+     *
+     * scheduler.addJob(job)
+     * ```
+     *
+     * @param daysOfWeek The set of days of the week on which the job should run.
+     * @param time The time at which the job should run.
+     * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
+     * @param runConcurrently Whether the job should run concurrently. Default is `true`.
+     * @param block The block of code to execute.
+     * @return The ID of the scheduled job.
+     */
+    fun runCron(
+        daysOfWeek: Set<DayOfWeek>,
+        time: LocalTime,
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        runConcurrently: Boolean = true,
+        block: suspend () -> Unit
+    ): String {
+        val trigger = CronTrigger(daysOfWeek, time)
+        val job = Job(
+            jobId = "runCron-${UUID.randomUUID()}",
+            trigger = trigger,
+            nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+            runConcurrently = runConcurrently,
+            dispatcher = dispatcher,
+            callback = block
+        )
+        job.let { addJob(it) }.also { return job.jobId }
+    }
+
+    /**
+     * Schedules a job to run daily at a specific time.
+     *
+     * This is a convenience method that creates a new job with a [DailyTrigger] and adds it to the scheduler.
+     * It is equivalent to this code:
+     *
+     * ```
+     * val trigger = DailyTrigger(dailyTime)
+     * val job = Job(
+     *    jobId = "runDaily-${UUID.randomUUID()}",
+     *    trigger = trigger,
+     *    nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *    runConcurrently = runConcurrently,
+     *    dispatcher = dispatcher,
+     *    callback = callback
+     * )
+     *
+     * scheduler.addJob(job)
+     * ```
+     *
+     * @param dailyTime The time at which the job should run daily.
+     * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
+     * @param runConcurrently Whether the job should run concurrently. Default is `true`.
+     * @param block The block of code to execute.
+     * @return The ID of the scheduled job.
+     */
+    fun runDaily(
+        dailyTime: LocalTime,
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        runConcurrently: Boolean = true,
+        block: suspend () -> Unit
+    ): String {
+        val trigger = DailyTrigger(dailyTime)
+        val job = Job(
+            jobId = "runDaily-${UUID.randomUUID()}",
+            trigger = trigger,
+            nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+            runConcurrently = runConcurrently,
+            dispatcher = dispatcher,
+            callback = block
+        )
+        job.let { addJob(it) }.also { return job.jobId }
+    }
+
+    /**
+     * Schedules a job to run at a specific interval.
+     *
+     * This is a convenience method that creates a new job with an [IntervalTrigger] and adds it to the scheduler.
+     * It is equivalent to this code:
+     *
+     * ```
+     * val trigger = IntervalTrigger(intervalSeconds)
+     * val job = Job(
+     *   jobId = "runRepeating-${UUID.randomUUID()}",
+     *   trigger = trigger,
+     *   nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *   runConcurrently = runConcurrently,
+     *   dispatcher = dispatcher,
+     *   callback = block
+     * )
+     *
+     * scheduler.addJob(job)
+     * ```
+     *
+     * @param intervalSeconds The interval in seconds at which the job should run.
+     * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
+     * @param runConcurrently Whether the job should run concurrently. Default is `true`.
+     * @param block The block of code to execute.
+     * @return The ID of the scheduled job.
+     */
+    fun runRepeating(
+        intervalSeconds: Long,
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        runConcurrently: Boolean = true,
+        block: suspend () -> Unit
+    ): String {
+        val trigger = IntervalTrigger(intervalSeconds)
+        val job = Job(
+            jobId = "runRepeating-${UUID.randomUUID()}",
+            trigger = trigger,
+            nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+            runConcurrently = runConcurrently,
+            dispatcher = dispatcher,
+            callback = block
+        )
+        job.let { addJob(it) }.also { return job.jobId }
+    }
+
+    /**
+     * Schedules a job to run at a specific time.
+     *
+     * This is a convenience method that creates a new job with a [OneTimeTrigger] and adds it to the scheduler.
+     * It is equivalent to this code:
+     *
+     * ```
+     * val job = Job(
+     *    jobId = "runOnce-${UUID.randomUUID()}",
+     *    trigger = OneTimeTrigger(runAt),
+     *    nextRunTime = runAt,
+     *    runConcurrently = runConcurrently,
+     *    dispatcher = dispatcher,
+     *    callback = callback
+     * )
+     *
+     * scheduler.addJob(job)
+     * ```
+     *
+     * @param runAt The time at which the job should run.
+     * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
+     * @param runConcurrently Whether the job should run concurrently. Default is `true`.
+     * @param block The block of code to execute.
+     * @return The ID of the scheduled job.
+     */
+    fun runOnce(
+        runAt: ZonedDateTime,
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        runConcurrently: Boolean = true,
+        block: suspend () -> Unit
+    ): String {
+        val job = Job(
+            jobId = "runOnce-${UUID.randomUUID()}",
+            trigger = OneTimeTrigger(runAt),
+            nextRunTime = runAt,
+            runConcurrently = runConcurrently,
+            dispatcher = dispatcher,
+            callback = block
+        )
+        job.let { addJob(it) }.also { return job.jobId }
+    }
+
+    // ============================================================================================
+    // Private methods
+    // ============================================================================================
+
     // Creates a new coroutine scope.
     private fun createCoroutineScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -284,20 +472,20 @@ class KtScheduler(
             // Execute the job.
             executor.execute(
                 job = job,
-                onSuccess = { handleJobCompletion(job, now) },
-                onError = { exc -> handleJobError(job, now, exc) }
+                onSuccess = { handleJobCompletion(job) },
+                onError = { exc -> handleJobError(job, exc) }
             )
         }
     }
 
     // Handles the completion of a job by updating the next run time or removing the job.
-    private fun handleJobCompletion(job: Job, now: ZonedDateTime) {
+    private fun handleJobCompletion(job: Job) {
         logger.info("Job ${job.jobId} completed successfully")
         notifyJobComplete(job.jobId)
     }
 
     // Handles an error encountered while executing a job.
-    private fun handleJobError(job: Job, now: ZonedDateTime, exception: Exception) {
+    private fun handleJobError(job: Job, exception: Exception) {
         logger.severe("Error executing job ${job.jobId}: $exception")
         notifyJobError(job.jobId, exception)
     }

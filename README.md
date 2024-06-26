@@ -77,14 +77,18 @@ val job = Job(
     // Callback function that will be executed when the job is triggered.
     callback = { println("OneTime Job executed at ${ZonedDateTime.now(timeZone)}") }
 )
-
-// ..or like this
-val job = Job(...) { println("Meow >~<") }
-
-// Add the job to the scheduler
+// add the job to the scheduler
 scheduler.addJob(job)
 
-// Start the scheduler
+// ..or like this (shortcut/convinience method)
+// This will create a job with a unique ID and add it to the scheduler
+// See the documentation for more details on the parameters and other
+// such convinience methods.
+scheduler.runRepeating(intervalSeconds = 10) {
+    println("Meow >~<") // every 10 seconds
+}
+
+// Finally, start the scheduler
 scheduler.start()
 
 // If you're running this as a standalone program, you need to block the current thread
@@ -187,7 +191,7 @@ the issue you want to contribute to before starting to work on it.
 ### Supporting ❤️
 
 If you found this library helpful, you can support me by giving a small tip
-via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and/or joing the list
+via [GitHub Sponsors](https://github.com/sponsors/starry-shivam) and/or joining the list
 of [stargazers](https://github.com/starry-shivam/KtScheduler/stargazers) by leaving a star! 🌟
 
 ------
