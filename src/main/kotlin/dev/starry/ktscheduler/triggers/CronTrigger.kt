@@ -40,7 +40,7 @@ class CronTrigger(
      * @param timeZone The time zone in which the trigger is operating.
      * @return The next run time as a [ZonedDateTime].
      */
-    override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime? {
+    override fun getNextRunTime(currentTime: ZonedDateTime, timeZone: ZoneId): ZonedDateTime {
         var nextRunTime = currentTime.withZoneSameInstant(timeZone).with(time).withNano(0)
         if (nextRunTime.isBefore(currentTime) || nextRunTime.isEqual(currentTime)) {
             nextRunTime = nextRunTime.plusDays(1)
