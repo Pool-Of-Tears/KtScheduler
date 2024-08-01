@@ -17,6 +17,8 @@
 
 package dev.starry.ktscheduler.event
 
+import dev.starry.ktscheduler.event.JobStatus.ERROR
+import dev.starry.ktscheduler.event.JobStatus.SUCCESS
 import java.time.ZonedDateTime
 
 /**

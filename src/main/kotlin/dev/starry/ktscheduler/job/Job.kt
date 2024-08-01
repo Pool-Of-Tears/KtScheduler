@@ -46,8 +46,12 @@ data class Job(
 
     /**
      * The next time the job should run.
+     *
+     * When adding a new job, it is used as the initial run time.
+     * If not provided, it will be calculated automatically based
+     * on the [Trigger.getNextRunTime] method when the job is added.
      */
-    val nextRunTime: ZonedDateTime,
+    val nextRunTime: ZonedDateTime? = null,
 
     /**
      * Whether to run multiple instances of this job concurrently.
@@ -66,4 +70,6 @@ data class Job(
      */
     val callback: suspend () -> Unit
 )
+
+
 

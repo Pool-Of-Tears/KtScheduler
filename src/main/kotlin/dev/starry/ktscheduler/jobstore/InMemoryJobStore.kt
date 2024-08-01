@@ -57,7 +57,7 @@ class InMemoryJobStore : JobStore {
      */
     override fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration?): List<Job> {
         return jobs.values.filter { job ->
-            val jobNextRunTime = job.nextRunTime
+            val jobNextRunTime = job.nextRunTime!!
             maxGraceTime?.let { graceTime ->
                 jobNextRunTime <= currentTime && currentTime <= jobNextRunTime.plus(graceTime)
             } ?: (jobNextRunTime <= currentTime)

@@ -27,20 +27,9 @@ import dev.starry.ktscheduler.triggers.CronTrigger
 import dev.starry.ktscheduler.triggers.DailyTrigger
 import dev.starry.ktscheduler.triggers.IntervalTrigger
 import dev.starry.ktscheduler.triggers.OneTimeTrigger
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.Duration
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.UUID
+import kotlinx.coroutines.*
+import java.time.*
+import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -163,7 +152,14 @@ class KtScheduler(
      */
     override fun addJob(job: Job) {
         logger.info("Adding job ${job.jobId}")
-        jobStore.addJob(job)
+        val jobToAdd = job.nextRunTime?.let {
+            job
+        } ?: job.copy(
+            nextRunTime = job.trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone)
+        ).apply {
+            logger.info("Calculated next run time for job ${job.jobId}: $nextRunTime")
+        }
+        jobStore.addJob(jobToAdd)
     }
 
     /**
@@ -282,17 +278,18 @@ class KtScheduler(
      * ```
      * val trigger = CronTrigger(daysOfWeek, time)
      * val job = Job(
-     *    jobId = "runCron-${UUID.randomUUID()}",
-     *    trigger = trigger,
-     *    nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
-     *    runConcurrently = runConcurrently,
-     *    dispatcher = dispatcher,
-     *    callback = callback
+     *     jobId = "runCron-${UUID.randomUUID()}",
+     *     trigger = trigger,
+     *     nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *     runConcurrently = runConcurrently,
+     *     dispatcher = dispatcher,
+     *     callback = callback
      * )
      *
      * scheduler.addJob(job)
      * ```
      *
+     * @param jobId The ID of the job. Default is a random UUID.
      * @param daysOfWeek The set of days of the week on which the job should run.
      * @param time The time at which the job should run.
      * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
@@ -301,6 +298,7 @@ class KtScheduler(
      * @return The ID of the scheduled job.
      */
     fun runCron(
+        jobId: String = "runCron-${UUID.randomUUID()}",
         daysOfWeek: Set<DayOfWeek>,
         time: LocalTime,
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
@@ -309,14 +307,14 @@ class KtScheduler(
     ): String {
         val trigger = CronTrigger(daysOfWeek, time)
         val job = Job(
-            jobId = "runCron-${UUID.randomUUID()}",
+            jobId = jobId,
             trigger = trigger,
             nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
             runConcurrently = runConcurrently,
             dispatcher = dispatcher,
             callback = block
         )
-        job.let { addJob(it) }.also { return job.jobId }
+        addJob(job).also { return job.jobId }
     }
 
     /**
@@ -328,17 +326,18 @@ class KtScheduler(
      * ```
      * val trigger = DailyTrigger(dailyTime)
      * val job = Job(
-     *    jobId = "runDaily-${UUID.randomUUID()}",
-     *    trigger = trigger,
-     *    nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
-     *    runConcurrently = runConcurrently,
-     *    dispatcher = dispatcher,
-     *    callback = callback
+     *     jobId = "runDaily-${UUID.randomUUID()}",
+     *     trigger = trigger,
+     *     nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *     runConcurrently = runConcurrently,
+     *     dispatcher = dispatcher,
+     *     callback = callback
      * )
      *
      * scheduler.addJob(job)
      * ```
      *
+     * @param jobId The ID of the job. Default is a random UUID.
      * @param dailyTime The time at which the job should run daily.
      * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
      * @param runConcurrently Whether the job should run concurrently. Default is `true`.
@@ -346,6 +345,7 @@ class KtScheduler(
      * @return The ID of the scheduled job.
      */
     fun runDaily(
+        jobId: String = "runDaily-${UUID.randomUUID()}",
         dailyTime: LocalTime,
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         runConcurrently: Boolean = true,
@@ -353,14 +353,14 @@ class KtScheduler(
     ): String {
         val trigger = DailyTrigger(dailyTime)
         val job = Job(
-            jobId = "runDaily-${UUID.randomUUID()}",
+            jobId = jobId,
             trigger = trigger,
             nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
             runConcurrently = runConcurrently,
             dispatcher = dispatcher,
             callback = block
         )
-        job.let { addJob(it) }.also { return job.jobId }
+        addJob(job).also { return job.jobId }
     }
 
     /**
@@ -372,17 +372,18 @@ class KtScheduler(
      * ```
      * val trigger = IntervalTrigger(intervalSeconds)
      * val job = Job(
-     *   jobId = "runRepeating-${UUID.randomUUID()}",
-     *   trigger = trigger,
-     *   nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
-     *   runConcurrently = runConcurrently,
-     *   dispatcher = dispatcher,
-     *   callback = block
+     *     jobId = "runRepeating-${UUID.randomUUID()}",
+     *     trigger = trigger,
+     *     nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
+     *     runConcurrently = runConcurrently,
+     *     dispatcher = dispatcher,
+     *     callback = block
      * )
      *
      * scheduler.addJob(job)
      * ```
      *
+     * @param jobId The ID of the job. Default is a random UUID.
      * @param intervalSeconds The interval in seconds at which the job should run.
      * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
      * @param runConcurrently Whether the job should run concurrently. Default is `true`.
@@ -390,6 +391,7 @@ class KtScheduler(
      * @return The ID of the scheduled job.
      */
     fun runRepeating(
+        jobId: String = "runRepeating-${UUID.randomUUID()}",
         intervalSeconds: Long,
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         runConcurrently: Boolean = true,
@@ -397,14 +399,14 @@ class KtScheduler(
     ): String {
         val trigger = IntervalTrigger(intervalSeconds)
         val job = Job(
-            jobId = "runRepeating-${UUID.randomUUID()}",
+            jobId = jobId,
             trigger = trigger,
             nextRunTime = trigger.getNextRunTime(ZonedDateTime.now(timeZone), timeZone),
             runConcurrently = runConcurrently,
             dispatcher = dispatcher,
             callback = block
         )
-        job.let { addJob(it) }.also { return job.jobId }
+        addJob(job).also { return job.jobId }
     }
 
     /**
@@ -415,17 +417,18 @@ class KtScheduler(
      *
      * ```
      * val job = Job(
-     *    jobId = "runOnce-${UUID.randomUUID()}",
-     *    trigger = OneTimeTrigger(runAt),
-     *    nextRunTime = runAt,
-     *    runConcurrently = runConcurrently,
-     *    dispatcher = dispatcher,
-     *    callback = callback
+     *     jobId = "runOnce-${UUID.randomUUID()}",
+     *     trigger = OneTimeTrigger(runAt),
+     *     nextRunTime = runAt,
+     *     runConcurrently = runConcurrently,
+     *     dispatcher = dispatcher,
+     *     callback = callback
      * )
      *
      * scheduler.addJob(job)
      * ```
      *
+     * @param jobId The ID of the job. Default is a random UUID.
      * @param runAt The time at which the job should run.
      * @param dispatcher The coroutine dispatcher to use. Default is [Dispatchers.Default].
      * @param runConcurrently Whether the job should run concurrently. Default is `true`.
@@ -433,20 +436,21 @@ class KtScheduler(
      * @return The ID of the scheduled job.
      */
     fun runOnce(
+        jobId: String = "runOnce-${UUID.randomUUID()}",
         runAt: ZonedDateTime,
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         runConcurrently: Boolean = true,
         block: suspend () -> Unit
     ): String {
         val job = Job(
-            jobId = "runOnce-${UUID.randomUUID()}",
+            jobId = jobId,
             trigger = OneTimeTrigger(runAt),
             nextRunTime = runAt,
             runConcurrently = runConcurrently,
             dispatcher = dispatcher,
             callback = block
         )
-        job.let { addJob(it) }.also { return job.jobId }
+        addJob(job).also { return job.jobId }
     }
 
     // ============================================================================================
