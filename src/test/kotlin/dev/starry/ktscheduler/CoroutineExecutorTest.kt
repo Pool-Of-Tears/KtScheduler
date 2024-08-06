@@ -40,15 +40,6 @@ import kotlin.test.assertNotNull
 @OptIn(ExperimentalCoroutinesApi::class)
 class CoroutineExecutorTest {
 
-    private lateinit var executor: CoroutineExecutor
-    private lateinit var trigger: OneTimeTrigger
-
-    @Before
-    fun setUp() {
-        executor = CoroutineExecutor()
-        trigger = OneTimeTrigger(ZonedDateTime.now(ZoneId.of("UTC")).plusSeconds(1))
-    }
-
     @After
     fun tearDown() {
         Dispatchers.resetMain()
@@ -56,6 +47,7 @@ class CoroutineExecutorTest {
 
     @Test
     fun testExecuteSuccess(): Unit = runTest {
+        val executor = CoroutineExecutor()
         val job = createTestJob(scheduler = testScheduler) { }
         var onSuccessCalled = false
         val onSuccess: () -> Unit = { onSuccessCalled = true }
@@ -68,6 +60,7 @@ class CoroutineExecutorTest {
 
     @Test
     fun testExecuteError(): Unit = runTest {
+        val executor = CoroutineExecutor()
         val job = createTestJob(scheduler = testScheduler) { throw IllegalArgumentException("Error") }
 
         val onSuccess: () -> Unit = { fail("onSuccess should not be called") }
@@ -83,6 +76,7 @@ class CoroutineExecutorTest {
 
     @Test
     fun testConcurrentExecution(): Unit = runTest {
+        val executor = CoroutineExecutor()
         // Create a job that takes 100ms to execute.
         val job = createTestJob(
             scheduler = testScheduler, runConcurrently = true
@@ -102,11 +96,14 @@ class CoroutineExecutorTest {
 
     @Test
     fun testNonConcurrentExecution(): Unit = runTest {
+        val executor = CoroutineExecutor()
         // Create a job that takes 100ms to execute.
-        val job = createTestJob(scheduler = testScheduler, runConcurrently = false) { delay(100) }
+        val job = createTestJob(
+            scheduler = testScheduler, runConcurrently = false
+        ) { delay(100) }
 
         var onSuccessCalled = 0
-        val onSuccess: () -> Unit = { onSuccessCalled++ }
+        val onSuccess: () -> Unit = { onSuccessCalled += 1 }
         val onError: (Throwable) -> Unit = { fail("onError should not be called") }
         // Execute the job 3 times concurrently.
         executor.execute(job, onSuccess, onError)
@@ -124,7 +121,7 @@ class CoroutineExecutorTest {
         callback: suspend () -> Unit,
     ): Job = Job(
         jobId = jobId,
-        trigger = trigger,
+        trigger = OneTimeTrigger(ZonedDateTime.now(ZoneId.of("UTC")).plusSeconds(1)),
         nextRunTime = ZonedDateTime.now(),
         dispatcher = UnconfinedTestDispatcher(scheduler),
         runConcurrently = runConcurrently,

@@ -22,10 +22,13 @@ keeping things simple and easy to use.
 
 ### Highlights ✨
 
-- Lightweight with no external dependencies other than `kotlinx:kotlinx-coroutines-core` from the Kotlin standard library.
+- Lightweight with no external dependencies other than `kotlinx:kotlinx-coroutines-core` from the Kotlin standard
+  library.
 - Designed to respect time zones, allowing you to set the time zone yourself or use the system's time zone by default.
-- Provides four different types of triggers to execute jobs daily, at certain intervals, once at a given time, or with a cron-like schedule.
-- Can run multiple instances of a job concurrently while giving you the option to run only one instance if the job is already executing.
+- Provides four different types of triggers to execute jobs daily, at certain intervals, once at a given time, or with a
+  cron-like schedule.
+- Can run multiple instances of a job concurrently while giving you the option to run only one instance if the job is
+  already executing.
 - Can be easily extended to suit your specific use case by allowing you to write custom triggers and job stores.
 - Easy to use and straightforward API with full KDoc/Javadoc documentation coverage.
 - 100% unit test coverage to ensure reliability across different scenarios.
@@ -50,6 +53,7 @@ dependencies {
     implementation("com.github.Pool-Of-Tears:KtScheduler:version")
 }
 ```
+
 ------
 
 ### Documentation 📑

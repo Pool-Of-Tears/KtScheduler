@@ -27,7 +27,6 @@ import dev.starry.ktscheduler.triggers.IntervalTrigger
 import dev.starry.ktscheduler.triggers.OneTimeTrigger
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -39,7 +38,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.fail
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class KtSchedulerTest {
 
     @Test
@@ -274,7 +272,7 @@ class KtSchedulerTest {
         scheduler.addEventListener(eventListener)
 
         scheduler.start()
-        Thread.sleep(2100)
+        Thread.sleep(2200)
 
         // Job 1 should be completed twice
         assertEquals(2, eventListener.completedJobs.size)
@@ -284,12 +282,12 @@ class KtSchedulerTest {
         // Job 1 should be rescheduled
         val rescheduledJob = scheduler.getJob("job1")
         assertNotNull(rescheduledJob)
-        assertEquals(startTime.plusSeconds(3).year, rescheduledJob.nextRunTime.year)
-        assertEquals(startTime.plusSeconds(3).month, rescheduledJob.nextRunTime.month)
-        assertEquals(startTime.plusSeconds(3).dayOfMonth, rescheduledJob.nextRunTime.dayOfMonth)
-        assertEquals(startTime.plusSeconds(3).hour, rescheduledJob.nextRunTime.hour)
-        assertEquals(startTime.plusSeconds(3).minute, rescheduledJob.nextRunTime.minute)
-        assertEquals(startTime.plusSeconds(3).second, rescheduledJob.nextRunTime.second)
+        assertEquals(startTime.plusSeconds(3).year, rescheduledJob.nextRunTime!!.year)
+        assertEquals(startTime.plusSeconds(3).month, rescheduledJob.nextRunTime!!.month)
+        assertEquals(startTime.plusSeconds(3).dayOfMonth, rescheduledJob.nextRunTime!!.dayOfMonth)
+        assertEquals(startTime.plusSeconds(3).hour, rescheduledJob.nextRunTime!!.hour)
+        assertEquals(startTime.plusSeconds(3).minute, rescheduledJob.nextRunTime!!.minute)
+        assertEquals(startTime.plusSeconds(3).second, rescheduledJob.nextRunTime!!.second)
 
         scheduler.shutdown()
     }
@@ -346,7 +344,7 @@ class KtSchedulerTest {
         // because the job is not run concurrently, and it takes 2 seconds to execute
         assertEquals(1, eventListener.completedJobs.size)
         // Assert that the job was executed twice after 4 seconds
-        Thread.sleep(1100)
+        Thread.sleep(1200)
         assertEquals(2, eventListener.completedJobs.size)
         assertEquals("longRunningJob", eventListener.completedJobs[0])
         assertEquals("longRunningJob", eventListener.completedJobs[1])
@@ -383,9 +381,70 @@ class KtSchedulerTest {
     }
 
     @Test
+    fun `test nextRuntime is getting calculated if not passed`() {
+        val scheduler = KtScheduler()
+        val intervalJob = Job(
+            jobId = "intervalJob",
+            trigger = IntervalTrigger(intervalSeconds = 1),
+            callback = { /* Do nothing */ }
+        )
+        val oneTimeJob = Job(
+            jobId = "oneTimeJob",
+            trigger = OneTimeTrigger(runAt = ZonedDateTime.now().plusSeconds(1)),
+            callback = { /* Do nothing */ }
+        )
+        val dailyJob = Job(
+            jobId = "dailyJob",
+            trigger = DailyTrigger(time = LocalTime.of(10, 0)),
+            callback = { /* Do nothing */ }
+        )
+        val cronJob = Job(
+            jobId = "cronJob",
+            trigger = CronTrigger(
+                daysOfWeek = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+                time = LocalTime.of(10, 0)
+            ),
+            callback = { /* Do nothing */ }
+        )
+
+        scheduler.addJob(intervalJob)
+        scheduler.addJob(oneTimeJob)
+        scheduler.addJob(dailyJob)
+        scheduler.addJob(cronJob)
+
+        scheduler.getJob("intervalJob")?.let {
+            assertNotNull(it.nextRunTime)
+            assertTrue(it.nextRunTime!! > ZonedDateTime.now())
+            assertTrue(it.nextRunTime!! < ZonedDateTime.now().plusSeconds(2))
+        } ?: fail("Job not found")
+
+        scheduler.getJob("oneTimeJob")?.let {
+            assertNotNull(it.nextRunTime)
+            assertTrue(it.nextRunTime!! > ZonedDateTime.now())
+            assertTrue(it.nextRunTime!! < ZonedDateTime.now().plusSeconds(2))
+        } ?: fail("Job not found")
+
+        scheduler.getJob("dailyJob")?.let {
+            assertNotNull(it.nextRunTime)
+            assertTrue(it.nextRunTime!!.hour == 10)
+            assertTrue(it.nextRunTime!!.minute == 0)
+        } ?: fail("Job not found")
+        scheduler.getJob("cronJob")?.let {
+            assertNotNull(it.nextRunTime)
+            assertTrue(it.nextRunTime!!.dayOfWeek == DayOfWeek.SATURDAY || it.nextRunTime!!.dayOfWeek == DayOfWeek.SUNDAY)
+            assertTrue(it.nextRunTime!!.hour == 10)
+            assertTrue(it.nextRunTime!!.minute == 0)
+        } ?: fail("Job not found")
+    }
+
+    @Test
     fun `test runCron schedules the cron job`() {
         val scheduler = KtScheduler()
-        val jobId = scheduler.runCron(setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY), LocalTime.of(10, 0)) {}
+        val jobId = scheduler.runCron(
+            daysOfWeek = setOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+            time = LocalTime.of(10, 0)
+        ) { /* do nothing */ }
+
         scheduler.getJob(jobId)?.let {
             assertTrue(it.trigger is CronTrigger)
             assertTrue(it.jobId.startsWith("runCron"))
@@ -418,7 +477,7 @@ class KtSchedulerTest {
     @Test
     fun `test runOnce schedules the one time job`() {
         val scheduler = KtScheduler()
-        val jobId = scheduler.runOnce(ZonedDateTime.now().plusSeconds(10)) {/* do nothing */ }
+        val jobId = scheduler.runOnce(runAt = ZonedDateTime.now().plusSeconds(10)) {/* do nothing */ }
         scheduler.getJob(jobId)?.let {
             assertTrue(it.trigger is OneTimeTrigger)
             assertTrue(it.jobId.startsWith("runOnce"))
