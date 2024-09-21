@@ -74,7 +74,7 @@ val job = Job(
     jobId = "OneTimeJob", // Must be unique for each job
     trigger = OneTimeTrigger(ZonedDateTime.now(timeZone).plusSeconds(5)),
     // Next runtime of the job; when creating the job for the first time,
-    // it will be used as the initial runtime.
+    // it will be used as the initial runtime (Optional).
     nextRunTime = ZonedDateTime.now(timeZone).plusSeconds(5),
     // Coroutine dispatcher in which the job should be executed.
     dispatcher = Dispatchers.Default,
