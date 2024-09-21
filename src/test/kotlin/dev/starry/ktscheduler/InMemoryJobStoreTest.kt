@@ -113,6 +113,24 @@ class InMemoryJobStoreTest {
         assertTrue(allJobs.contains(job2))
     }
 
+    @Test
+    fun `getDueJobs should not return jobs with nextRuntime null`() {
+        val job = Job(
+            jobId = "job1",
+            trigger = OneTimeTrigger(ZonedDateTime.now()),
+            nextRunTime = null,
+            dispatcher = Dispatchers.Default,
+            callback = { /* Do nothing */ }
+        )
+        jobStore.addJob(job)
+
+        val currentTime = ZonedDateTime.now()
+        val maxGraceTime = Duration.ofMinutes(1)
+
+        val dueJobsWithGraceTime = jobStore.getDueJobs(currentTime, maxGraceTime)
+        assertEquals(0, dueJobsWithGraceTime.size)
+    }
+
     private fun createTestJob(jobId: String, nextRunTime: ZonedDateTime = ZonedDateTime.now()): Job {
         return Job(
             jobId = jobId,
