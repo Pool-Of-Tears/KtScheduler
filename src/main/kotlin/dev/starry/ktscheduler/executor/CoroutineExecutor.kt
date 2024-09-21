@@ -30,6 +30,7 @@ class CoroutineExecutor : Executor {
 
     // A map of currently running jobs.
     private val runningJobs = ConcurrentHashMap<String, Job>()
+    private val lock = Any() // Lock to synchronize access to runningJobs.
 
     /**
      * Executes the given job.
@@ -41,23 +42,24 @@ class CoroutineExecutor : Executor {
     override suspend fun execute(
         job: Job, onSuccess: () -> Unit, onError: (Exception) -> Unit
     ) {
-        // If the job is not allowed to run concurrently and a job with the
-        // same ID is already running, return.
-        if (!job.runConcurrently && runningJobs.containsKey(job.jobId)) {
-            return
+        synchronized(lock) {
+            // If the job is not allowed to run concurrently and another job
+            // with the same ID is running, return.
+            if (!job.runConcurrently && runningJobs.containsKey(job.jobId)) {
+                return
+            }
+            runningJobs[job.jobId] = job
         }
 
         CoroutineScope(job.dispatcher).launch {
-            // Add the job to the running jobs map.
-            runningJobs[job.jobId] = job
             try {
                 job.callback()
                 withContext(Dispatchers.Default) { onSuccess() }
             } catch (exc: Exception) {
                 withContext(Dispatchers.Default) { onError(exc) }
             } finally {
-                // Remove the job from the running jobs map.
-                runningJobs.remove(job.jobId)
+                // Remove the job from the runningJobs map after execution.
+                synchronized(lock) { runningJobs.remove(job.jobId) }
             }
         }
     }
