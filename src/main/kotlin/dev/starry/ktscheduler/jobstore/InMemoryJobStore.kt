@@ -21,11 +21,17 @@ import dev.starry.ktscheduler.job.Job
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.Logger
 
 /**
  * An in-memory implementation of [JobStore].
  */
 class InMemoryJobStore : JobStore {
+
+    companion object {
+        private const val TAG = "InMemoryJobStore"
+        private val logger = Logger.getLogger(TAG)
+    }
 
     // A map of job IDs to jobs
     private val jobs = ConcurrentHashMap<String, Job>()
@@ -56,6 +62,15 @@ class InMemoryJobStore : JobStore {
      * @param maxGraceTime The maximum grace time for a job to be considered due, null if no grace time.
      */
     override fun getDueJobs(currentTime: ZonedDateTime, maxGraceTime: Duration?): List<Job> {
+        // This should never happen, but just in case.
+        jobs.entries.removeIf { (jobId, job) ->
+            (job.nextRunTime == null).also { isNull ->
+                if (isNull) logger.warning(
+                    "Job with ID $jobId has no next run time. Removing it from the store."
+                )
+            }
+        }
+        // Filter jobs that are due
         return jobs.values.filter { job ->
             val jobNextRunTime = job.nextRunTime!!
             maxGraceTime?.let { graceTime ->
@@ -63,7 +78,6 @@ class InMemoryJobStore : JobStore {
             } ?: (jobNextRunTime <= currentTime)
         }
     }
-
 
     /**
      * Updates the next run time of a job.
